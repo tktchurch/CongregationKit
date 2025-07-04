@@ -1,0 +1,50 @@
+name: Build and Publish DocC Documentation
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Select Xcode 15.1
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '15.1.0'
+      - name: Resolve Swift Package Dependencies
+        run: swift package resolve
+      - name: Build DocC Documentation
+        run: |
+          export DOCC_JSON_PRETTYPRINT=YES
+          swift package --allow-writing-to-directory ./docs \
+            generate-documentation \
+            --target CongregationKit \
+            --output-path ./docs \
+            --disable-indexing \
+            --transform-for-static-hosting \
+            --hosting-base-path CongregationKit
+          echo '<script>window.location.href += "/documentation/congregationkit"</script>' > docs/index.html
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'docs'
+      - id: deployment
+        name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4 

@@ -1,0 +1,27 @@
+version: 1
+
+documentation_url: https://github.com/vamsii777/CongregationKit#readme
+website_url: https://github.com/vamsii777/CongregationKit
+issue_tracker_url: https://github.com/vamsii777/CongregationKit/issues
+ci_badge_url: https://github.com/vamsii777/CongregationKit/actions
+
+supported_platforms:
+  - platform: macOS
+    version: "14.0"
+  - platform: iOS
+    version: "15.0"
+
+swift_versions:
+  - "6.0"
+
+products:
+  - name: CongregationKit
+    targets: [CongregationKit]
+  - name: SalesforceClient
+    targets: [SalesforceClient]
+
+maintainers:
+  - github: vamsii777
+    name: Vamsi Madduluri
+
+license: MIT
