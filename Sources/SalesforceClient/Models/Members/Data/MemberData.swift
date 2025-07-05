@@ -295,6 +295,7 @@ public enum Campus: String, Codable, CaseIterable, Sendable {
     case campusThree = "Campus Three"
     case campusFour = "Campus Four"
     case teenXYouth = "Teen X Youth"
+    case hiTechCity = "Hitech City"
 
     /// A user-friendly display name for the campus.
     public var displayName: String { self.rawValue }
@@ -302,18 +303,30 @@ public enum Campus: String, Codable, CaseIterable, Sendable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let value = try container.decode(String.self).trimmingCharacters(in: .whitespacesAndNewlines)
-        switch value {
-        case "East Campus": self = .eastCampus
-        case "West Campus": self = .westCampus
-        case "Campus One": self = .campusOne
-        case "Campus Two": self = .campusTwo
-        case "Campus Three": self = .campusThree
-        case "Campus Four": self = .campusFour
-        case "Teen X Youth": self = .teenXYouth
+        // Normalize inputs by converting to lowercase and removing all spaces
+        let normalizedValue = value.lowercased().replacingOccurrences(of: " ", with: "")
+        switch normalizedValue {
+        case "eastcampus":
+            self = .eastCampus
+        case "westcampus":
+            self = .westCampus
+        case "campusone":
+            self = .campusOne
+        case "campustwo":
+            self = .campusTwo
+        case "campusthree":
+            self = .campusThree
+        case "campusfour":
+            self = .campusFour
+        case "teenxyouth":
+            self = .teenXYouth
+        case "hitechcity":
+            self = .hiTechCity
         default:
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unknown Campus value: \(value)")
         }
     }
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(self.rawValue)

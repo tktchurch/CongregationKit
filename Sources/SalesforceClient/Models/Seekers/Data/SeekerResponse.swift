@@ -121,3 +121,24 @@ extension SeekerResponse {
         return (data.metadata.per, data.metadata.total, data.metadata.page)
     }
 }
+
+/// Errors specific to seeker operations
+public enum SeekerError: Error, LocalizedError, Sendable {
+    case seekerNotFound
+    case invalidSeekerData
+    case fetchFailed(Error)
+    case invalidIdentifier
+
+    public var errorDescription: String? {
+        switch self {
+        case .seekerNotFound:
+            return "Seeker not found"
+        case .invalidSeekerData:
+            return "Invalid seeker data received"
+        case .fetchFailed(let error):
+            return "Failed to fetch seeker data: \(error.localizedDescription)"
+        case .invalidIdentifier:
+            return "Identifier must be a valid leadId or phone number"
+        }
+    }
+}
