@@ -139,4 +139,11 @@ public protocol SalesforceSeekerRoutes: SalesforceAPIRoute {
      - Throws: `SeekerError` if seeker not found or fetch fails
      */
     func fetch(identifier: String, accessToken: String, instanceUrl: String) async throws -> Seeker
+
+    /// Fetches all seekers from Salesforce (returns all seekers, not paginated)
+    /// - Parameter accessToken: The OAuth access token
+    /// - Parameter instanceUrl: The Salesforce instance URL
+    /// - Returns: Array of seekers
+    /// - Throws: `SeekerError` if fetch fails
+    func fetchAll(accessToken: String, instanceUrl: String) async throws -> [Seeker]
 } 

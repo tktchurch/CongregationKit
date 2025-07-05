@@ -53,6 +53,22 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
         return try await client.processResponse(response, as: SeekerResponse.self)
     }
 
+    /// Fetches all seekers from Salesforce (returns all seekers, not paginated)
+    public func fetchAll(accessToken: String, instanceUrl: String) async throws -> [Seeker] {
+        let seekerURL = "\(instanceUrl)\(SalesforceAPIConstants.seekerEndpointV2)"
+        let requestHeaders = SalesforceAPIUtil.convertToHTTPHeaders([
+            "Authorization": "Bearer \(accessToken)",
+            "Content-Type": "application/json"
+        ])
+        let response = try await client.sendRequest(
+            method: .GET,
+            path: seekerURL,
+            headers: requestHeaders
+        )
+        let seekerResponse = try await client.processResponse(response, as: SeekerResponse.self)
+        return seekerResponse.seekers
+    }
+
     /// Fetches a specific seeker by identifier (leadId or phone, case-insensitive).
     public func fetch(identifier: String, accessToken: String, instanceUrl: String) async throws -> Seeker {
         let seekerURL = "\(instanceUrl)\(SalesforceAPIConstants.seekerEndpointV2)/\(identifier)"
@@ -71,5 +87,5 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
         }
         return seeker
     }
-} 
+}
  

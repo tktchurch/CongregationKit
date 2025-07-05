@@ -36,6 +36,11 @@ public protocol SeekersHandler: Sendable {
     /// - Returns: The seeker if found
     /// - Throws: `SeekerError` if operation fails
     func fetch(identifier: String) async throws -> Seeker
+
+    /// Fetches all seekers (non-paginated)
+    /// - Returns: Array of seekers
+    /// - Throws: `SeekerError` if operation fails
+    func fetchAll() async throws -> [Seeker]
 }
 
 /// Default implementation of SeekersHandler for Salesforce
@@ -86,6 +91,16 @@ public struct SalesforceSeekersHandler: SeekersHandler {
     public func fetch(identifier: String) async throws -> Seeker {
         return try await salesforceClient.seekers.fetch(
             identifier: identifier,
+            accessToken: accessToken,
+            instanceUrl: instanceUrl
+        )
+    }
+
+    /// Fetches all seekers (non-paginated)
+    /// - Returns: Array of seekers
+    /// - Throws: `SeekerError` if operation fails
+    public func fetchAll() async throws -> [Seeker] {
+        return try await salesforceClient.seekers.fetchAll(
             accessToken: accessToken,
             instanceUrl: instanceUrl
         )
