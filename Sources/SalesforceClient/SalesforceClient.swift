@@ -43,6 +43,9 @@ public actor SalesforceClient {
     /// Routes for Salesforce member management
     public let members: any SalesforceMemberRoutes
     
+    /// Routes for Salesforce seeker management
+    public let seekers: any SalesforceSeekerRoutes
+    
     private let handler: SalesforceAPIHandler
     
     /// Creates a new Salesforce API client.
@@ -51,6 +54,7 @@ public actor SalesforceClient {
         self.handler = SalesforceAPIHandler(httpClient: httpClient)
         self.auth = SalesforceAuthRoutesImpl(client: handler)
         self.members = SalesforceMemberRoutesImpl(client: handler)
+        self.seekers = SalesforceSeekerRoutesImpl(client: handler)
     }
 }
 

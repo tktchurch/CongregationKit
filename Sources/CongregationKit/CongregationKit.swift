@@ -42,6 +42,7 @@ public struct CongregationKit: CongregationKitProtocol {
     private let salesforceClient: SalesforceClient
     private let authResponse: SalesforceAuthResponse
     private let membersHandler: MembersHandler
+    private let seekersHandler: SeekersHandler
     
     /// Creates a new CongregationKit client and authenticates with Salesforce
     /// - Parameters:
@@ -52,6 +53,11 @@ public struct CongregationKit: CongregationKitProtocol {
         self.salesforceClient = SalesforceClient(httpClient: httpClient)
         self.authResponse = try await salesforceClient.auth.authenticate(credentials: credentials)
         self.membersHandler = SalesforceMembersHandler(
+            salesforceClient: salesforceClient,
+            accessToken: authResponse.accessToken,
+            instanceUrl: authResponse.instanceUrl
+        )
+        self.seekersHandler = SalesforceSeekersHandler(
             salesforceClient: salesforceClient,
             accessToken: authResponse.accessToken,
             instanceUrl: authResponse.instanceUrl
@@ -70,11 +76,21 @@ public struct CongregationKit: CongregationKitProtocol {
             accessToken: authResponse.accessToken,
             instanceUrl: authResponse.instanceUrl
         )
+        self.seekersHandler = SalesforceSeekersHandler(
+            salesforceClient: salesforceClient,
+            accessToken: authResponse.accessToken,
+            instanceUrl: authResponse.instanceUrl
+        )
     }
     
     /// The members handler for member operations
     public var members: MembersHandler {
         return membersHandler
+    }
+    
+    /// The seekers handler for seeker operations
+    public var seekers: SeekersHandler {
+        return seekersHandler
     }
 }
 
