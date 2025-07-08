@@ -1,5 +1,5 @@
-import Foundation
 import AsyncHTTPClient
+import Foundation
 import NIOHTTP1
 
 /// Constants for Salesforce API endpoints
@@ -16,7 +16,7 @@ public enum SalesforceAPIConstants {
 /// Utility functions for Salesforce API operations
 public enum SalesforceAPIUtil {
     /// Converts a dictionary of query parameters to a URL query string.
-    /// 
+    ///
     /// - Parameter queryParams: An optional dictionary of string key-value pairs representing query parameters.
     /// - Returns: A URL-encoded query string starting with "?", or an empty string if no parameters are provided.
     ///
@@ -30,7 +30,7 @@ public enum SalesforceAPIUtil {
         let queryItems = queryParams.map { "\($0.key)=\($0.value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")" }
         return "?" + queryItems.joined(separator: "&")
     }
-    
+
     /// Converts a dictionary of strings to HTTPHeaders
     /// - Parameter dictionary: The string dictionary
     /// - Returns: HTTPHeaders
@@ -50,7 +50,7 @@ extension HTTPClientRequest.Body {
     public static func string(_ string: String) -> Self {
         .bytes(.init(string: string))
     }
-    
+
     public static func data(_ data: Data) -> Self {
         .bytes(.init(data: data))
     }
@@ -63,13 +63,13 @@ extension HTTPClientRequest.Body {
 /// Handler for Salesforce API requests
 public actor SalesforceAPIHandler {
     private let httpClient: HTTPClient
-    
+
     /// Creates a new Salesforce API handler
     /// - Parameter httpClient: The HTTP client to use for making requests
     public init(httpClient: HTTPClient) {
         self.httpClient = httpClient
     }
-    
+
     /// Sends a request to Salesforce API
     /// - Parameters:
     ///   - method: The HTTP method
@@ -88,21 +88,23 @@ public actor SalesforceAPIHandler {
     ) async throws -> HTTPClientResponse {
         let queryString = SalesforceAPIUtil.convertToQueryString(queryParams)
         let url = path + queryString
-        
+
         var requestHeaders: HTTPHeaders = [
             "Accept": "application/json"
         ]
-        headers.forEach { requestHeaders.add(name: $0.name, value: $0.value) }
+        for header in headers {
+            requestHeaders.add(name: header.name, value: header.value)
+        }
 
         var request = HTTPClientRequest(url: url)
         request.method = method
         request.headers = requestHeaders
         request.body = body
-        
+
         let response = try await httpClient.execute(request, timeout: .seconds(30))
         return response
     }
-    
+
     /// Processes the response and decodes it to the specified type
     /// - Parameters:
     ///   - response: The HTTP response
@@ -115,21 +117,22 @@ public actor SalesforceAPIHandler {
             let errorMessage = String(buffer: body)
             throw SalesforceAuthError.serverError("HTTP \(response.status.code): \(errorMessage)")
         }
-        
+
         let body = try await response.body.collect(upTo: 1024 * 1024)
         let data = Data(body.readableBytesView)
-        
+
         return try JSONDecoder().decode(type, from: data)
     }
-    
+
     /// Creates form-encoded body for OAuth requests
     /// - Parameter parameters: The form parameters
     /// - Returns: The HTTP body
     public func createFormBody(parameters: [String: String]) -> HTTPClientRequest.Body {
-        let formString = parameters
+        let formString =
+            parameters
             .map { "\($0.key)=\($0.value)" }
             .joined(separator: "&")
-        
+
         return .string(formString)
     }
 }
@@ -147,4 +150,4 @@ extension HTTPHeaders {
         }
         return headers
     }
-} 
+}

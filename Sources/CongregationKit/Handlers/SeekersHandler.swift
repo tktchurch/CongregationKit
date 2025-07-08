@@ -44,6 +44,8 @@ public protocol SeekersHandler: Sendable {
 }
 
 /// Default implementation of SeekersHandler for Salesforce
+///
+/// Handles all seeker-related operations using the Salesforce API.
 public struct SalesforceSeekersHandler: SeekersHandler {
     private let salesforceClient: SalesforceClient
     private let accessToken: String
@@ -105,4 +107,4 @@ public struct SalesforceSeekersHandler: SeekersHandler {
             instanceUrl: instanceUrl
         )
     }
-} 
+}

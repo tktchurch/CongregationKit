@@ -16,4 +16,4 @@ public protocol EmploymentInformationRepresentable: Sendable {
     var occupationSubCategoryEnum: OccupationSubCategory? { get }
     /// The member's occupation category, inferred from subcategory if needed.
     var occupationCategory: Occupation? { get }
-} 
+}

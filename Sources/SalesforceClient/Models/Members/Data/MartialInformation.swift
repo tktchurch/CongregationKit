@@ -1,9 +1,8 @@
 import Foundation
-/**
- A type representing a member's marital information, including status, anniversary, spouse, and children count.
 
- - Note: This struct is modular and conforms to `MaritalInformationRepresentable` for type-safe access in the member model.
- */
+/// A type representing a member's marital information, including status, anniversary, spouse, and children count.
+///
+/// - Note: This struct is modular and conforms to `MaritalInformationRepresentable` for type-safe access in the member model.
 public struct MaritalInformation: Codable, Equatable, Sendable {
     /// The member's marital status (e.g., Married, Single, Widowed, etc.)
     public let maritalStatus: MaritalStatus?
@@ -12,14 +11,12 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
     /// The number of children the member has, if available.
     public let numberOfChildren: Int?
 
-    /**
-     Creates a new MaritalInformation instance.
-     - Parameters:
-        - maritalStatus: The member's marital status.
-        - weddingAnniversary: The member's wedding anniversary date.
-        - spouseName: The member's spouse's name.
-        - numberOfChildren: The number of children the member has.
-     */
+    /// Creates a new MaritalInformation instance.
+    /// - Parameters:
+    ///   - maritalStatus: The member's marital status.
+    ///   - weddingAnniversary: The member's wedding anniversary date.
+    ///   - spouseName: The member's spouse's name.
+    ///   - numberOfChildren: The number of children the member has.
     public init(
         maritalStatus: MaritalStatus? = nil,
         weddingAnniversary: Date? = nil,
@@ -72,9 +69,7 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
         return formatter
     }()
 
-    /**
-     Struct representing detailed wedding anniversary information.
-     */
+    /// Struct representing detailed wedding anniversary information.
     public struct WeddingAnniversaryInfo: Codable, Equatable, Sendable {
         /// The original anniversary date.
         public let date: Date
@@ -131,4 +126,4 @@ public enum MaritalStatus: String, Codable, CaseIterable, Sendable {
 // Conformance to MaritalInformationRepresentable
 extension MaritalInformation: MaritalInformationRepresentable {
     public var weddingAnniversary: WeddingAnniversaryInfo? { weddingAnniversaryInfo }
-} 
+}

@@ -426,7 +426,7 @@ public struct MemberData: MemberDataRepresentable {
     public let spm: Bool?
     /// The service the member is attending, if available.
     public let attendingService: AttendingService?
-    
+
     public init(
         dateOfBirth: Date? = nil,
         title: MemberTitle? = nil,
@@ -452,4 +452,4 @@ public struct MemberData: MemberDataRepresentable {
         self.spm = spm
         self.attendingService = attendingService
     }
-} 
+}

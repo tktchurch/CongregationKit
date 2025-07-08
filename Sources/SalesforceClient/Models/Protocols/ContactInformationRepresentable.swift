@@ -22,4 +22,4 @@ public protocol ContactInformationRepresentable: Sendable {
     var profession: String? { get }
     /// The member's location, if available.
     var location: String? { get }
-} 
+}

@@ -1,10 +1,8 @@
 import Foundation
 
-/**
- A type representing a member's contact information, including phone, email, and address.
-
- - Note: This struct is modular and conforms to `ContactInformationRepresentable` for type-safe access in the member model.
- */
+/// A type representing a member's contact information, including phone, email, and address.
+///
+/// - Note: This struct is modular and conforms to `ContactInformationRepresentable` for type-safe access in the member model.
 public struct ContactInformation: Codable, Equatable, Sendable, ContactInformationRepresentable {
     /// The member's primary phone number.
     public let phoneNumber: String?

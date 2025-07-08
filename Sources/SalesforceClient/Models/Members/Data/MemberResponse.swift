@@ -1,42 +1,34 @@
 import Foundation
 
-/// Response wrapper for member data from Salesforce, supporting both paginated and non-paginated responses
+/// A response wrapper for member data from Salesforce.
+///
+/// Supports both paginated and non-paginated responses. The `members` array is always populated from the top-level 'members' key. Pagination metadata is available via the `metadata` property if present.
 public struct MemberResponse: Codable, Sendable {
-    /// Array of members returned from the API
+    /// The array of members returned from the API (from the top-level 'members' key).
     public let members: [Member]
-    /// Optional data container for paginated responses
-    public let data: DataContainer?
-    /// Optional error flag
+    /// Pagination metadata, if present (from top-level keys).
+    public let metadata: Metadata?
+    /// Optional error flag.
     public let error: Bool?
-    /// Optional error message
+    /// Optional error message.
     public let message: String?
 
-    public struct DataContainer: Codable, Sendable {
-        public let items: [Member]
-        public let metadata: Metadata
-    }
-
+    /// Metadata for paginated responses.
     public struct Metadata: Codable, Sendable {
-        public let per: Int
-        public let total: Int
-        public let page: Int
-    }
-
-    // Success initializer for non-paginated response
-    public init(members: [Member]) {
-        self.members = members
-        self.data = nil
-        self.error = nil
-        self.message = nil
+        /// The number of items per page.
+        public let per: Int?
+        /// The total number of items available.
+        public let total: Int?
+        /// The current page number.
+        public let page: Int?
     }
 
     enum CodingKeys: String, CodingKey {
-        case members = "member" // Legacy key
-        case data
+        case members
+        case member = "member"
         case error
         case message
-        // Salesforce API keys for paginated response
-        case items = "members"
+        // Pagination keys
         case totalRecords
         case pageSize
         case pageNumber
@@ -45,44 +37,28 @@ public struct MemberResponse: Codable, Sendable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        // Check for error response
-        if let success = try? container.decodeIfPresent(Bool.self, forKey: .success), success == false {
-            self.members = []
-            self.data = nil
-            self.error = true
-            self.message = try? container.decodeIfPresent(String.self, forKey: .message)
-            return
-        }
-        self.error = nil
-        self.message = nil // <-- Only set message for error, not for success
-        // Try decoding paginated response (flat Salesforce API format)
-        if let members = try? container.decodeIfPresent([Member].self, forKey: .items) {
-            let per = (try? container.decodeIfPresent(Int.self, forKey: .pageSize)) ?? members.count
-            let total = (try? container.decodeIfPresent(Int.self, forKey: .totalRecords)) ?? members.count
-            let page = (try? container.decodeIfPresent(Int.self, forKey: .pageNumber)) ?? 1
+        // Try to decode 'members' first, then fallback to 'member' (legacy)
+        if let members = try? container.decode([Member].self, forKey: .members) {
             self.members = members
-            self.data = DataContainer(items: members, metadata: Metadata(per: per, total: total, page: page))
-        }
-        // Fall back to legacy non-paginated response ("member")
-        else if let members = try? container.decodeIfPresent([Member].self, forKey: .members) {
-            self.members = members
-            self.data = nil
         } else {
-            self.members = []
-            self.data = nil
+            self.members = (try? container.decode([Member].self, forKey: .member)) ?? []
         }
+        // Extract pagination info from top-level keys
+        let per = try? container.decodeIfPresent(Int.self, forKey: .pageSize)
+        let total = try? container.decodeIfPresent(Int.self, forKey: .totalRecords)
+        let page = try? container.decodeIfPresent(Int.self, forKey: .pageNumber)
+        if per != nil || total != nil || page != nil {
+            self.metadata = Metadata(per: per, total: total, page: page)
+        } else {
+            self.metadata = nil
+        }
+        self.error = try? container.decodeIfPresent(Bool.self, forKey: .error)
+        self.message = try? container.decodeIfPresent(String.self, forKey: .message)
     }
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        // Encode paginated response
-        if let data = data {
-            try container.encode(data, forKey: .data)
-        }
-        // Encode non-paginated response
-        else {
-            try container.encode(members, forKey: .members)
-        }
+        try container.encode(members, forKey: .members)
         if let error = error {
             try container.encode(error, forKey: .error)
             try container.encode(false, forKey: .success)
@@ -90,6 +66,18 @@ public struct MemberResponse: Codable, Sendable {
         if let message = message {
             try container.encode(message, forKey: .message)
         }
+        if let metadata = metadata {
+            if let per = metadata.per { try container.encode(per, forKey: .pageSize) }
+            if let total = metadata.total { try container.encode(total, forKey: .totalRecords) }
+            if let page = metadata.page { try container.encode(page, forKey: .pageNumber) }
+        }
+    }
+
+    public init(members: [Member]) {
+        self.members = members
+        self.metadata = nil
+        self.error = nil
+        self.message = nil
     }
 }
 
@@ -97,7 +85,7 @@ extension MemberResponse {
     // Convenience initializer for paginated response
     public init(members: [Member], per: Int, total: Int, page: Int) {
         self.members = members
-        self.data = DataContainer(items: members, metadata: Metadata(per: per, total: total, page: page))
+        self.metadata = Metadata(per: per, total: total, page: page)
         self.error = nil
         self.message = nil
     }
@@ -105,19 +93,19 @@ extension MemberResponse {
     // Convenience initializer for error response
     public init(errorMessage: String) {
         self.members = []
-        self.data = nil
+        self.metadata = nil
         self.error = true
         self.message = errorMessage
     }
 
     // Helper to check if response is paginated
     public var isPaginated: Bool {
-        return data != nil
+        return metadata != nil
     }
 
     // Helper to access pagination info safely
     public var paginationInfo: (per: Int, total: Int, page: Int)? {
-        guard let data = data else { return nil }
-        return (data.metadata.per, data.metadata.total, data.metadata.page)
+        guard let metadata = metadata else { return nil }
+        return (metadata.per ?? 0, metadata.total ?? 0, metadata.page ?? 0)
     }
 }

@@ -1,9 +1,10 @@
 // The Swift Programming Language
 // https://docs.swift.org/swift-book
 
+import AsyncHTTPClient
 import Foundation
 import SalesforceClient
-import AsyncHTTPClient
+@_exported import SalesforceClient
 
 /// A high-level client for church Salesforce integration
 ///
@@ -38,12 +39,12 @@ import AsyncHTTPClient
 /// ### Available Services
 /// - ``members``
 public struct CongregationKit: CongregationKitProtocol {
-    
+
     private let salesforceClient: SalesforceClient
     private let authResponse: SalesforceAuthResponse
     private let membersHandler: MembersHandler
     private let seekersHandler: SeekersHandler
-    
+
     /// Creates a new CongregationKit client and authenticates with Salesforce
     /// - Parameters:
     ///   - httpClient: The HTTP client to use for making requests
@@ -63,7 +64,7 @@ public struct CongregationKit: CongregationKitProtocol {
             instanceUrl: authResponse.instanceUrl
         )
     }
-    
+
     /// Creates a new CongregationKit client using pre-authenticated data
     /// - Parameters:
     ///   - httpClient: The HTTP client to use for making requests
@@ -82,18 +83,14 @@ public struct CongregationKit: CongregationKitProtocol {
             instanceUrl: authResponse.instanceUrl
         )
     }
-    
+
     /// The members handler for member operations
     public var members: MembersHandler {
         return membersHandler
     }
-    
+
     /// The seekers handler for seeker operations
     public var seekers: SeekersHandler {
         return seekersHandler
     }
 }
-
-// MARK: - Re-exports for convenience
-
-@_exported import SalesforceClient
