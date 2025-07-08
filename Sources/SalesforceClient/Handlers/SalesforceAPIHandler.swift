@@ -1,5 +1,6 @@
 import AsyncHTTPClient
 import Foundation
+import NIOCore
 import NIOHTTP1
 
 /// Constants for Salesforce API endpoints
@@ -52,11 +53,16 @@ extension HTTPClientRequest.Body {
     }
 
     public static func data(_ data: Data) -> Self {
-        .bytes(.init(data: data))
+        var buffer = ByteBufferAllocator().buffer(capacity: data.count)
+        buffer.writeBytes(data)
+        return .bytes(buffer)
     }
 
     public static func json(_ json: [String: Any]) throws -> Self {
-        .bytes(.init(data: try JSONSerialization.data(withJSONObject: json, options: [])))
+        let jsonData = try JSONSerialization.data(withJSONObject: json, options: [])
+        var buffer = ByteBufferAllocator().buffer(capacity: jsonData.count)
+        buffer.writeBytes(jsonData)
+        return .bytes(buffer)
     }
 }
 
