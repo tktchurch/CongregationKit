@@ -30,6 +30,33 @@ public protocol SeekersHandler: Sendable {
         contactNumber: String?
     ) async throws -> SeekerResponse
 
+    /// Fetches all seekers with pagination support (cursor-based, supports nextPageToken)
+    /// - Parameters:
+    ///   - pageNumber: The page number to fetch (optional, default 1)
+    ///   - pageSize: The page size to fetch (optional, default 50)
+    ///   - nextPageToken: The next page token for cursor-based pagination (optional)
+    ///   - seekerId: Filter by seeker ID (optional)
+    ///   - name: Filter by name (optional)
+    ///   - campus: Filter by campus (optional, type-safe)
+    ///   - leadStatus: Filter by lead status (optional, type-safe)
+    ///   - email: Filter by email (optional)
+    ///   - leadId: Filter by lead ID (optional)
+    ///   - contactNumber: Filter by contact number (optional)
+    /// - Returns: SeekerResponse containing seekers and pagination info
+    /// - Throws: `SeekerError` if operation fails
+    func fetchAll(
+        pageNumber: Int?,
+        pageSize: Int?,
+        nextPageToken: String?,
+        seekerId: String?,
+        name: String?,
+        campus: Campus?,
+        leadStatus: LeadStatus?,
+        email: String?,
+        leadId: String?,
+        contactNumber: String?
+    ) async throws -> SeekerResponse
+
     /// Fetches a specific seeker by identifier (leadId or phone, case-insensitive)
     /// - Parameters:
     ///   - identifier: The identifier to fetch (leadId or phone)
@@ -79,6 +106,35 @@ public struct SalesforceSeekersHandler: SeekersHandler {
             instanceUrl: instanceUrl,
             pageNumber: pageNumber,
             pageSize: pageSize,
+            seekerId: seekerId,
+            name: name,
+            campus: campus,
+            leadStatus: leadStatus,
+            email: email,
+            leadId: leadId,
+            contactNumber: contactNumber
+        )
+    }
+
+    /// Fetches all seekers with pagination support (cursor-based, supports nextPageToken)
+    public func fetchAll(
+        pageNumber: Int? = nil,
+        pageSize: Int? = nil,
+        nextPageToken: String? = nil,
+        seekerId: String? = nil,
+        name: String? = nil,
+        campus: Campus? = nil,
+        leadStatus: LeadStatus? = nil,
+        email: String? = nil,
+        leadId: String? = nil,
+        contactNumber: String? = nil
+    ) async throws -> SeekerResponse {
+        return try await salesforceClient.seekers.fetchAll(
+            accessToken: accessToken,
+            instanceUrl: instanceUrl,
+            pageNumber: pageNumber,
+            pageSize: pageSize,
+            nextPageToken: nextPageToken,
             seekerId: seekerId,
             name: name,
             campus: campus,

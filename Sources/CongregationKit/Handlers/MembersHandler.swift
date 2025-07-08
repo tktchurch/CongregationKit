@@ -19,6 +19,12 @@ public protocol MembersHandler: Sendable {
     /// - Throws: `MemberError` if operation fails or memberId is invalid
     func fetch(id memberId: MemberID) async throws -> Member
 
+    /// Fetches all members
+    ///
+    /// - Returns: MemberResponse containing members and pagination info
+    /// - Throws: `MemberError` if operation fails
+    func fetch() async throws -> MemberResponse
+
     /// Fetches a specific member by ID (deprecated; see note below)
     ///
     /// - Important: As a result of recent backend API changes, this method no longer retrieves a single member by ID. Instead, it returns a list of all members. For accurate single-member retrieval, use the new `fetch(id: MemberID)` method, which provides type safety and proper normalization.
@@ -40,6 +46,15 @@ public protocol MembersHandler: Sendable {
     /// - Returns: MemberResponse containing members and pagination info
     /// - Throws: `MemberError` if operation fails
     func fetchAll(pageNumber: Int?, pageSize: Int?) async throws -> MemberResponse
+
+    /// Fetches all members with pagination support (cursor-based, supports nextPageToken)
+    /// - Parameters:
+    ///   - pageNumber: The page number to fetch (optional, default 1)
+    ///   - pageSize: The page size to fetch (optional, default 50)
+    ///   - nextPageToken: The next page token for cursor-based pagination (optional)
+    /// - Returns: MemberResponse containing members and pagination info
+    /// - Throws: `MemberError` if operation fails
+    func fetchAll(pageNumber: Int?, pageSize: Int?, nextPageToken: String?) async throws -> MemberResponse
 
     /// Fetches all members with pagination support and optional expanded fields.
     /// - Parameters:
@@ -122,6 +137,13 @@ public struct SalesforceMembersHandler: MembersHandler {
         return try await fetch(id: normalizedMemberID)
     }
 
+    public func fetch() async throws -> MemberResponse {
+        return try await salesforceClient.members.fetch(
+            accessToken: accessToken,
+            instanceUrl: instanceUrl
+        )
+    }
+
     /// Fetches all members with pagination support
     ///
     /// - Parameters:
@@ -135,6 +157,23 @@ public struct SalesforceMembersHandler: MembersHandler {
             instanceUrl: instanceUrl,
             pageNumber: pageNumber,
             pageSize: pageSize
+        )
+    }
+
+    /// Fetches all members with pagination support (cursor-based, supports nextPageToken)
+    /// - Parameters:
+    ///   - pageNumber: The page number to fetch (optional, default 1)
+    ///   - pageSize: The page size to fetch (optional, default 50)
+    ///   - nextPageToken: The next page token for cursor-based pagination (optional)
+    /// - Returns: MemberResponse containing members and pagination info
+    /// - Throws: `MemberError` if operation fails
+    public func fetchAll(pageNumber: Int?, pageSize: Int?, nextPageToken: String?) async throws -> MemberResponse {
+        return try await salesforceClient.members.fetchAll(
+            accessToken: accessToken,
+            instanceUrl: instanceUrl,
+            pageNumber: pageNumber,
+            pageSize: pageSize,
+            nextPageToken: nextPageToken
         )
     }
 

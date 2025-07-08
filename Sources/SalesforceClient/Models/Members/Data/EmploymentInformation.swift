@@ -132,6 +132,7 @@ public enum Occupation: String, Codable, CaseIterable, Sendable {
     case banking = "Banking"
     case others = "Others"
     case notApplicable = "Not Applicable"
+    case government = "Government"
     case other
     public var displayName: String { self.rawValue }
     public var shortDisplay: String {
@@ -150,6 +151,7 @@ public enum Occupation: String, Codable, CaseIterable, Sendable {
         case .others: return "Oth"
         case .notApplicable: return "N/A"
         case .other: return "Other"
+        case .government: return "Govt"
         }
     }
     public var internationalFormat: String {
@@ -168,6 +170,7 @@ public enum Occupation: String, Codable, CaseIterable, Sendable {
         case .others: return "OTH"
         case .notApplicable: return "NA"
         case .other: return "OTHER"
+        case .government: return "GOVT"
         }
     }
     public var subcategories: [OccupationSubCategory] {
@@ -194,7 +197,7 @@ public enum Occupation: String, Codable, CaseIterable, Sendable {
             return [.recruiter, .trainerCoach, .others]
         case .banking:
             return [.banker, .cashier, .others]
-        case .others, .notApplicable, .other:
+        case .others, .notApplicable, .other, .government:
             return OccupationSubCategory.allCases
         }
     }
