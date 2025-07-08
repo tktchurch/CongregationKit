@@ -1,7 +1,7 @@
 import AsyncHTTPClient
 import Foundation
-import NIOHTTP1
 import NIOCore
+import NIOHTTP1
 
 /// Constants for Salesforce API endpoints
 public enum SalesforceAPIConstants {
