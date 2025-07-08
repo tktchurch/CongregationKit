@@ -6,8 +6,8 @@ import PackageDescription
 let package = Package(
     name: "CongregationKit",
     platforms: [
-        .macOS(.v14),
-        .iOS(.v15)
+        .macOS(.v13),
+        .iOS(.v15),
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
@@ -43,14 +43,7 @@ let package = Package(
             name: "CongregationKitTests",
             dependencies: [
                 "CongregationKit",
-                .product(name: "AsyncHTTPClient", package: "async-http-client")
-            ]
-        ),
-        .testTarget(
-            name: "SalesforceClientTests",
-            dependencies: [
-                "SalesforceClient",
-                .product(name: "AsyncHTTPClient", package: "async-http-client")
+                .product(name: "AsyncHTTPClient", package: "async-http-client"),
             ]
         ),
     ]

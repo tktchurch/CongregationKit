@@ -7,7 +7,7 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
     public let id: String?
     /// Member ID from Salesforce (type-safe)
     public let memberId: MemberID?
-    
+
     // MARK: - Name Fields
     /// Full name of the member
     public var memberName: String?
@@ -191,7 +191,8 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
 extension Member {
     public init(from decoder: Decoder) throws {
         enum CodingKeys: String, CodingKey {
-            case id, memberId, memberName, firstName, middleName, lastName, gender, phone, email, lifeGroupName, area, address, dateOfBirth, title, memberType, bloodGroup, preferredLanguages, attendingCampus, partOfLifeGroup, status, campus, spm, attendingService
+            case id, memberId, memberName, firstName, middleName, lastName, gender, phone, email, lifeGroupName, area, address, dateOfBirth,
+                title, memberType, bloodGroup, preferredLanguages, attendingCampus, partOfLifeGroup, status, campus, spm, attendingService
             // API alternate keys
             case currentAddress, contactNumberMobile, lifeGroupLeaderName
             case profession, location, whatsappNumber, alternateNumber
@@ -212,15 +213,26 @@ extension Member {
         let lastName = try container.decodeIfPresent(String.self, forKey: .lastName)
         let memberName = try container.decodeIfPresent(String.self, forKey: .memberName)
         let gender = try container.decodeIfPresent(Gender.self, forKey: .gender)
-        let phone = try container.decodeIfPresent(String.self, forKey: .contactNumberMobile) ??
-                    container.decodeIfPresent(String.self, forKey: .phone)
+        let phone =
+            try container.decodeIfPresent(String.self, forKey: .contactNumberMobile)
+            ?? container.decodeIfPresent(String.self, forKey: .phone)
         let email = try container.decodeIfPresent(String.self, forKey: .email)
-        let lifeGroupName = try container.decodeIfPresent(String.self, forKey: .lifeGroupLeaderName) ??
-                            container.decodeIfPresent(String.self, forKey: .lifeGroupName)
+        let lifeGroupName =
+            try container.decodeIfPresent(String.self, forKey: .lifeGroupLeaderName)
+            ?? container.decodeIfPresent(String.self, forKey: .lifeGroupName)
         let area = try container.decodeIfPresent(String.self, forKey: .area)
-        let address = try container.decodeIfPresent(String.self, forKey: .currentAddress) ??
-                       container.decodeIfPresent(String.self, forKey: .address)
-        let dateOfBirth = try container.decodeIfPresent(Date.self, forKey: .dateOfBirth)
+        let address =
+            try container.decodeIfPresent(String.self, forKey: .currentAddress) ?? container.decodeIfPresent(String.self, forKey: .address)
+        let dateOfBirth: Date? = {
+            if let dateString = try? container.decodeIfPresent(String.self, forKey: .dateOfBirth) {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd"
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                return formatter.date(from: dateString)
+            } else {
+                return nil
+            }
+        }()
         let title = try container.decodeIfPresent(MemberTitle.self, forKey: .title)
         let memberType = try container.decodeIfPresent(MemberType.self, forKey: .memberType)
         let bloodGroup = try container.decodeIfPresent(BloodGroup.self, forKey: .bloodGroup)
@@ -229,7 +241,9 @@ extension Member {
                 return langs
             }
             if let langsString = try? container.decodeIfPresent(String.self, forKey: .preferredLanguages) {
-                let parts = langsString.components(separatedBy: CharacterSet(charactersIn: ";&")).map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                let parts = langsString.components(separatedBy: CharacterSet(charactersIn: ";&")).map {
+                    $0.trimmingCharacters(in: .whitespacesAndNewlines)
+                }
                 let enums = parts.compactMap { PreferredLanguage(rawValue: $0) }
                 return enums.isEmpty ? nil : enums
             }
@@ -310,7 +324,7 @@ extension Member {
 
 public struct MemberID: RawRepresentable, Codable, Sendable, Equatable, Hashable {
     public let rawValue: String
-    
+
     /// Failable initializer for RawRepresentable conformance
     public init?(rawValue: String) {
         guard rawValue.count >= 3 else { return nil }
@@ -339,7 +353,7 @@ public enum MemberError: Error, LocalizedError, Sendable {
     case invalidMemberData
     case fetchFailed(Error)
     case invalidMemberID
-    
+
     public var errorDescription: String? {
         switch self {
         case .memberNotFound:

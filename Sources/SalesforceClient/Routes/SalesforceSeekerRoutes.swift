@@ -1,12 +1,12 @@
-import Foundation
 import AsyncHTTPClient
+import Foundation
 import NIOHTTP1
 
 /// Implementation of Salesforce seeker routes
 public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
     public var headers: HTTPHeaders = [:]
     private let client: SalesforceAPIHandler
-    
+
     init(client: SalesforceAPIHandler) {
         self.client = client
     }
@@ -29,7 +29,7 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
         let size = pageSize ?? 50
         var queryParams: [String: String] = [
             "pageNumber": String(page),
-            "pageSize": String(size)
+            "pageSize": String(size),
         ]
         if let seekerId = seekerId { queryParams["seekerId"] = seekerId }
         if let name = name { queryParams["name"] = name }
@@ -42,7 +42,7 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
         let seekerURL = "\(instanceUrl)\(SalesforceAPIConstants.seekerEndpointV2)"
         let requestHeaders = SalesforceAPIUtil.convertToHTTPHeaders([
             "Authorization": "Bearer \(accessToken)",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         ])
         let response = try await client.sendRequest(
             method: .GET,
@@ -58,7 +58,7 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
         let seekerURL = "\(instanceUrl)\(SalesforceAPIConstants.seekerEndpointV2)"
         let requestHeaders = SalesforceAPIUtil.convertToHTTPHeaders([
             "Authorization": "Bearer \(accessToken)",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         ])
         let response = try await client.sendRequest(
             method: .GET,
@@ -74,7 +74,7 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
         let seekerURL = "\(instanceUrl)\(SalesforceAPIConstants.seekerEndpointV2)/\(identifier)"
         let requestHeaders = SalesforceAPIUtil.convertToHTTPHeaders([
             "Authorization": "Bearer \(accessToken)",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         ])
         let response = try await client.sendRequest(
             method: .GET,
@@ -88,4 +88,3 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
         return seeker
     }
 }
- 

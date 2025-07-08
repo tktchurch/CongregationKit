@@ -1,10 +1,8 @@
 import Foundation
 
-/**
- A type representing a member's employment information, including status, organization, occupation, and subcategory.
-
- - Note: This struct supports hierarchical occupation modeling. Use `occupationCategory` and `occupationSubCategoryEnum` for safe access to category and subcategory.
- */
+/// A type representing a member's employment information, including status, organization, occupation, and subcategory.
+///
+/// - Note: This struct supports hierarchical occupation modeling. Use `occupationCategory` and `occupationSubCategoryEnum` for safe access to category and subcategory.
 public struct EmploymentInformation: Codable, Equatable, Sendable, EmploymentInformationRepresentable {
     /// The member's employment status (e.g., employed, student, retired).
     public let employmentStatus: EmploymentStatus?
@@ -24,15 +22,15 @@ public struct EmploymentInformation: Codable, Equatable, Sendable, EmploymentInf
         guard let sub = occupationSubCategoryEnum else { return nil }
         return Occupation.allCases.first(where: { $0.subcategories.contains(sub) })
     }
-    /**
-     Creates a new EmploymentInformation instance.
-     - Parameters:
-        - employmentStatus: The member's employment status.
-        - nameOfTheOrganization: The name of the organization.
-        - occupation: The occupation category.
-        - occupationSubCategoryRaw: The raw value for the occupation subcategory.
-     */
-    public init(employmentStatus: EmploymentStatus?, nameOfTheOrganization: String?, occupation: Occupation?, occupationSubCategoryRaw: String?) {
+    /// Creates a new EmploymentInformation instance.
+    /// - Parameters:
+    ///   - employmentStatus: The member's employment status.
+    ///   - nameOfTheOrganization: The name of the organization.
+    ///   - occupation: The occupation category.
+    ///   - occupationSubCategoryRaw: The raw value for the occupation subcategory.
+    public init(
+        employmentStatus: EmploymentStatus?, nameOfTheOrganization: String?, occupation: Occupation?, occupationSubCategoryRaw: String?
+    ) {
         self.employmentStatus = employmentStatus
         self.nameOfTheOrganization = nameOfTheOrganization
         self.occupation = occupation
@@ -440,4 +438,4 @@ public enum OccupationSubCategory: String, Codable, CaseIterable, Sendable {
         case .other: return "OTHER"
         }
     }
-} 
+}

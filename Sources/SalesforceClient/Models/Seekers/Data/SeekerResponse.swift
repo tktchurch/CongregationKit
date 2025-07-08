@@ -1,42 +1,33 @@
 import Foundation
 
-/// Response wrapper for seeker data from API, supporting both paginated and non-paginated responses
+/// A response wrapper for seeker data from the API.
+///
+/// Supports both paginated and non-paginated responses. The `seekers` array is always populated from the top-level 'seekers' key. Pagination metadata is available via the `metadata` property if present.
 public struct SeekerResponse: Codable, Sendable {
-    /// Array of seekers returned from the API
+    /// The array of seekers returned from the API (from the top-level 'seekers' key).
     public let seekers: [Seeker]
-    /// Optional data container for paginated responses
-    public let data: DataContainer?
-    /// Optional error flag
+    /// Pagination metadata, if present (from top-level keys).
+    public let metadata: Metadata?
+    /// Optional error flag.
     public let error: Bool?
-    /// Optional error message
+    /// Optional error message.
     public let message: String?
 
-    public struct DataContainer: Codable, Sendable {
-        public let items: [Seeker]
-        public let metadata: Metadata
-    }
-
+    /// Metadata for paginated responses.
     public struct Metadata: Codable, Sendable {
-        public let per: Int
-        public let total: Int
-        public let page: Int
-    }
-
-    // Success initializer for non-paginated response
-    public init(seekers: [Seeker]) {
-        self.seekers = seekers
-        self.data = nil
-        self.error = nil
-        self.message = nil
+        /// The number of items per page.
+        public let per: Int?
+        /// The total number of items available.
+        public let total: Int?
+        /// The current page number.
+        public let page: Int?
     }
 
     enum CodingKeys: String, CodingKey {
-        case seekers = "seeker" // Legacy key
-        case data
+        case seekers
         case error
         case message
-        // API keys for paginated response
-        case items = "seekers"
+        // Pagination keys
         case totalRecords
         case pageSize
         case pageNumber
@@ -45,50 +36,42 @@ public struct SeekerResponse: Codable, Sendable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        // Check for error response
-        if let success = try? container.decodeIfPresent(Bool.self, forKey: .success), success == false {
-            self.seekers = []
-            self.data = nil
-            self.error = true
-            self.message = try? container.decodeIfPresent(String.self, forKey: .message)
-            return
+        // Only decode 'seekers' array
+        self.seekers = (try? container.decode([Seeker].self, forKey: .seekers)) ?? []
+        // Extract pagination info from top-level keys
+        let per = try? container.decodeIfPresent(Int.self, forKey: .pageSize)
+        let total = try? container.decodeIfPresent(Int.self, forKey: .totalRecords)
+        let page = try? container.decodeIfPresent(Int.self, forKey: .pageNumber)
+        if per != nil || total != nil || page != nil {
+            self.metadata = Metadata(per: per, total: total, page: page)
+        } else {
+            self.metadata = nil
         }
+        self.error = try? container.decodeIfPresent(Bool.self, forKey: .error)
+        self.message = try? container.decodeIfPresent(String.self, forKey: .message)
+    }
+
+    public init(seekers: [Seeker]) {
+        self.seekers = seekers
+        self.metadata = nil
         self.error = nil
         self.message = nil
-        // Try decoding paginated response
-        if let seekers = try? container.decodeIfPresent([Seeker].self, forKey: .items) {
-            let per = (try? container.decodeIfPresent(Int.self, forKey: .pageSize)) ?? seekers.count
-            let total = (try? container.decodeIfPresent(Int.self, forKey: .totalRecords)) ?? seekers.count
-            let page = (try? container.decodeIfPresent(Int.self, forKey: .pageNumber)) ?? 1
-            self.seekers = seekers
-            self.data = DataContainer(items: seekers, metadata: Metadata(per: per, total: total, page: page))
-        }
-        // Fall back to legacy non-paginated response ("seeker")
-        else if let seekers = try? container.decodeIfPresent([Seeker].self, forKey: .seekers) {
-            self.seekers = seekers
-            self.data = nil
-        } else {
-            self.seekers = []
-            self.data = nil
-        }
     }
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        // Encode paginated response
-        if let data = data {
-            try container.encode(data, forKey: .data)
-        }
-        // Encode non-paginated response
-        else {
-            try container.encode(seekers, forKey: .seekers)
-        }
+        try container.encode(seekers, forKey: .seekers)
         if let error = error {
             try container.encode(error, forKey: .error)
             try container.encode(false, forKey: .success)
         }
         if let message = message {
             try container.encode(message, forKey: .message)
+        }
+        if let metadata = metadata {
+            if let per = metadata.per { try container.encode(per, forKey: .pageSize) }
+            if let total = metadata.total { try container.encode(total, forKey: .totalRecords) }
+            if let page = metadata.page { try container.encode(page, forKey: .pageNumber) }
         }
     }
 }
@@ -97,7 +80,7 @@ extension SeekerResponse {
     // Convenience initializer for paginated response
     public init(seekers: [Seeker], per: Int, total: Int, page: Int) {
         self.seekers = seekers
-        self.data = DataContainer(items: seekers, metadata: Metadata(per: per, total: total, page: page))
+        self.metadata = Metadata(per: per, total: total, page: page)
         self.error = nil
         self.message = nil
     }
@@ -105,20 +88,20 @@ extension SeekerResponse {
     // Convenience initializer for error response
     public init(errorMessage: String) {
         self.seekers = []
-        self.data = nil
+        self.metadata = nil
         self.error = true
         self.message = errorMessage
     }
 
     // Helper to check if response is paginated
     public var isPaginated: Bool {
-        return data != nil
+        return metadata != nil
     }
 
     // Helper to access pagination info safely
     public var paginationInfo: (per: Int, total: Int, page: Int)? {
-        guard let data = data else { return nil }
-        return (data.metadata.per, data.metadata.total, data.metadata.page)
+        guard let metadata = metadata else { return nil }
+        return (metadata.per ?? 0, metadata.total ?? 0, metadata.page ?? 0)
     }
 }
 

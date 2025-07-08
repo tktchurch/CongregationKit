@@ -1,12 +1,10 @@
 import Foundation
 
-/**
- Represents a member's water baptism experience.
-
- - Parameters:
-    - date: The date of water baptism (as provided by the API, may be year or full date).
-    - received: Whether the member has received water baptism.
- */
+/// Represents a member's water baptism experience.
+///
+/// - Parameters:
+///    - date: The date of water baptism (as provided by the API, may be year or full date).
+///    - received: Whether the member has received water baptism.
 public struct WaterBaptism: Codable, Equatable, Sendable {
     /// The date of water baptism (as provided by the API, may be year or full date).
     public let date: String?
@@ -14,13 +12,11 @@ public struct WaterBaptism: Codable, Equatable, Sendable {
     public let received: Bool?
 }
 
-/**
- Represents a member's prayer course experience.
-
- - Parameters:
-    - completed: Whether the member has completed the prayer course.
-    - date: The date the prayer course was completed (if available).
- */
+/// Represents a member's prayer course experience.
+///
+/// - Parameters:
+///    - completed: Whether the member has completed the prayer course.
+///    - date: The date the prayer course was completed (if available).
 public struct PrayerCourse: Codable, Equatable, Sendable {
     /// Whether the member has completed the prayer course.
     public let completed: Bool?
@@ -28,25 +24,21 @@ public struct PrayerCourse: Codable, Equatable, Sendable {
     public let date: String?
 }
 
-/**
- Represents a member's foundation course experience.
-
- - Parameters:
-    - completed: Whether the member has completed the foundation course.
- */
+/// Represents a member's foundation course experience.
+///
+/// - Parameters:
+///    - completed: Whether the member has completed the foundation course.
 public struct FoundationCourse: Codable, Equatable, Sendable {
     /// Whether the member has completed the foundation course.
     public let completed: Bool?
 }
 
-/**
- Represents a member's serving/ministry involvement.
-
- - Parameters:
-    - involved: The type of ministry involvement (e.g., Full-time, Part-time, Volunteers, No).
-    - primaryDepartment: The member's primary department (picklist).
-    - serviceCampus: The campus where the member serves.
- */
+/// Represents a member's serving/ministry involvement.
+///
+/// - Parameters:
+///    - involved: The type of ministry involvement (e.g., Full-time, Part-time, Volunteers, No).
+///    - primaryDepartment: The member's primary department (picklist).
+///    - serviceCampus: The campus where the member serves.
 public struct ServingInformation: Codable, Equatable, Sendable {
     /// The type of ministry involvement (e.g., Full-time, Part-time, Volunteers, No).
     public let involved: MinistryInvolvement?
@@ -56,11 +48,9 @@ public struct ServingInformation: Codable, Equatable, Sendable {
     public let serviceCampus: String?
 }
 
-/**
- A modular, extensible type representing a member's discipleship and spiritual journey information.
-
- - Note: This struct is designed for production-grade church data modeling, supporting modular sub-structs for each major discipleship experience.
- */
+/// A modular, extensible type representing a member's discipleship and spiritual journey information.
+///
+/// - Note: This struct is designed for production-grade church data modeling, supporting modular sub-structs for each major discipleship experience.
 public struct DiscipleshipInformation: Codable, Equatable, Sendable, DiscipleshipInformationRepresentable {
     /// The date the member was born again (as provided by the API).
     public let bornAgainDate: String?
@@ -108,10 +98,14 @@ public struct DiscipleshipInformation: Codable, Equatable, Sendable, Discipleshi
         self.bornAgainDate = try container.decodeIfPresent(String.self, forKey: .bornAgainDate)
         let waterBaptismDate = try container.decodeIfPresent(String.self, forKey: .waterBaptismDate)
         let waterBaptismReceived = try container.decodeIfPresent(Bool.self, forKey: .waterBaptismReceived)
-        self.waterBaptism = (waterBaptismDate != nil || waterBaptismReceived != nil) ? WaterBaptism(date: waterBaptismDate, received: waterBaptismReceived) : nil
+        self.waterBaptism =
+            (waterBaptismDate != nil || waterBaptismReceived != nil)
+            ? WaterBaptism(date: waterBaptismDate, received: waterBaptismReceived) : nil
         let prayerCourseCompleted = try container.decodeIfPresent(Bool.self, forKey: .prayerCourseCompleted)
         let prayerCourseDate = try container.decodeIfPresent(String.self, forKey: .prayerCourseDate)
-        self.prayerCourse = (prayerCourseCompleted != nil || prayerCourseDate != nil) ? PrayerCourse(completed: prayerCourseCompleted, date: prayerCourseDate) : nil
+        self.prayerCourse =
+            (prayerCourseCompleted != nil || prayerCourseDate != nil)
+            ? PrayerCourse(completed: prayerCourseCompleted, date: prayerCourseDate) : nil
         let foundationCourseCompleted = try container.decodeIfPresent(Bool.self, forKey: .foundationCourseCompleted)
         self.foundationCourse = foundationCourseCompleted != nil ? FoundationCourse(completed: foundationCourseCompleted) : nil
         self.attendedLifeTransformationCamp = try container.decodeIfPresent(Bool.self, forKey: .attendedLifeTransformationCamp)
@@ -122,7 +116,9 @@ public struct DiscipleshipInformation: Codable, Equatable, Sendable, Discipleshi
         let involved = try container.decodeIfPresent(MinistryInvolvement.self, forKey: .involvedInMinistry)
         let department = try container.decodeIfPresent(PrimaryDepartment.self, forKey: .primaryDepartment)
         let campus = try container.decodeIfPresent(String.self, forKey: .serviceCampus)
-        self.serving = (involved != nil || department != nil || campus != nil) ? ServingInformation(involved: involved, primaryDepartment: department, serviceCampus: campus) : nil
+        self.serving =
+            (involved != nil || department != nil || campus != nil)
+            ? ServingInformation(involved: involved, primaryDepartment: department, serviceCampus: campus) : nil
         self.bibleCourse = try container.decodeIfPresent(BibleCourse.self, forKey: .bibleCourse)
     }
 
@@ -250,4 +246,4 @@ public enum BibleCourse: String, Codable, CaseIterable, Sendable {
     case no = "No"
     case unknown
     public var displayName: String { self.rawValue }
-} 
+}

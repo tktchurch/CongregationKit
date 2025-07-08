@@ -1,6 +1,6 @@
+import AsyncHTTPClient
 import Foundation
 import NIOHTTP1
-import AsyncHTTPClient
 
 /// Base protocol for all Salesforce API routes
 public protocol SalesforceAPIRoute: Sendable {
@@ -38,7 +38,7 @@ public protocol SalesforceMemberRoutes: SalesforceAPIRoute {
     /// - Throws: `MemberError` if fetch fails
     @available(*, deprecated, message: "Use fetchAll(accessToken:instanceUrl:pageNumber:pageSize:) for paginated results.")
     func fetchAll(accessToken: String, instanceUrl: String) async throws -> [Member]
-    
+
     /// Fetches all members from Salesforce with pagination support
     /// - Parameters:
     ///   - accessToken: The OAuth access token
@@ -48,7 +48,7 @@ public protocol SalesforceMemberRoutes: SalesforceAPIRoute {
     /// - Returns: MemberResponse containing members and pagination info
     /// - Throws: `MemberError` if fetch fails
     func fetchAll(accessToken: String, instanceUrl: String, pageNumber: Int?, pageSize: Int?) async throws -> MemberResponse
-    
+
     /// Fetches a specific member by ID (deprecated, use fetch(validatedMemberId:...))
     /// - Parameters:
     ///   - memberId: The member ID to fetch
@@ -59,62 +59,55 @@ public protocol SalesforceMemberRoutes: SalesforceAPIRoute {
     @available(*, deprecated, message: "Use fetch(memberId:accessToken:instanceUrl:) with MemberID for automatic validation.")
     func fetch(memberId: String, accessToken: String, instanceUrl: String) async throws -> Member
 
-    /**
-     Fetches a specific member by ID (must start with TKT).
-     - Parameters:
-        - memberId: The member ID to fetch. This will be validated automatically (must start with TKT) via the `MemberID` type.
-        - accessToken: The OAuth access token.
-        - instanceUrl: The Salesforce instance URL.
-     - Returns: The member if found.
-     - Throws: `MemberError` if member not found, fetch fails, or validation fails.
-     */
+    /// Fetches a specific member by ID (must start with TKT).
+    /// - Parameters:
+    ///   - memberId: The member ID to fetch. This will be validated automatically (must start with TKT) via the `MemberID` type.
+    ///   - accessToken: The OAuth access token.
+    ///   - instanceUrl: The Salesforce instance URL.
+    /// - Returns: The member if found.
+    /// - Throws: `MemberError` if member not found, fetch fails, or validation fails.
     func fetch(memberId: MemberID, accessToken: String, instanceUrl: String) async throws -> Member
 
-    /**
-     Fetches all members from Salesforce with optional expanded information (contact and employment).
-     - Parameters:
-        - accessToken: The OAuth access token
-        - instanceUrl: The Salesforce instance URL
-        - pageNumber: The page number to fetch (optional, default 1)
-        - pageSize: The page size to fetch (optional, default 50)
-        - expanded: An array of `MemberExpand` specifying which related information to expand (e.g., [.employmentInformation, .contactInformation])
-     - Returns: MemberResponse containing members and pagination info
-     - Throws: `MemberError` if fetch fails
-     */
-    func fetchAll(accessToken: String, instanceUrl: String, pageNumber: Int?, pageSize: Int?, expanded: [MemberExpand]) async throws -> MemberResponse
+    /// Fetches all members from Salesforce with optional expanded information (contact and employment).
+    /// - Parameters:
+    ///   - accessToken: The OAuth access token
+    ///   - instanceUrl: The Salesforce instance URL
+    ///   - pageNumber: The page number to fetch (optional, default 1)
+    ///   - pageSize: The page size to fetch (optional, default 50)
+    ///   - expanded: An array of `MemberExpand` specifying which related information to expand (e.g., [.employmentInformation, .contactInformation])
+    /// - Returns: MemberResponse containing members and pagination info
+    /// - Throws: `MemberError` if fetch fails
+    func fetchAll(accessToken: String, instanceUrl: String, pageNumber: Int?, pageSize: Int?, expanded: [MemberExpand]) async throws
+        -> MemberResponse
 
-    /**
-     Fetches a specific member by ID with optional expanded information (contact and employment).
-     - Parameters:
-        - memberId: The member ID to fetch. This will be validated automatically (must start with TKT) via the `MemberID` type.
-        - accessToken: The OAuth access token.
-        - instanceUrl: The Salesforce instance URL.
-        - expanded: An array of `MemberExpand` specifying which related information to expand (e.g., [.employmentInformation, .contactInformation])
-     - Returns: The member if found.
-     - Throws: `MemberError` if member not found, fetch fails, or validation fails.
-     */
+    /// Fetches a specific member by ID with optional expanded information (contact and employment).
+    /// - Parameters:
+    ///   - memberId: The member ID to fetch. This will be validated automatically (must start with TKT) via the `MemberID` type.
+    ///   - accessToken: The OAuth access token.
+    ///   - instanceUrl: The Salesforce instance URL.
+    ///   - expanded: An array of `MemberExpand` specifying which related information to expand (e.g., [.employmentInformation, .contactInformation])
+    /// - Returns: The member if found.
+    /// - Throws: `MemberError` if member not found, fetch fails, or validation fails.
     func fetch(memberId: MemberID, accessToken: String, instanceUrl: String, expanded: [MemberExpand]) async throws -> Member
 }
 
 /// Protocol for Salesforce seeker routes
 public protocol SalesforceSeekerRoutes: SalesforceAPIRoute {
-    /**
-     Fetches a paginated list of seekers from Salesforce.
-     - Parameters:
-        - accessToken: The OAuth access token
-        - instanceUrl: The Salesforce instance URL
-        - pageNumber: The page number to fetch (optional, default 1)
-        - pageSize: The page size to fetch (optional, default 50)
-        - seekerId: Filter by seeker ID (optional)
-        - name: Filter by name (optional)
-        - campus: Filter by campus (optional)
-        - leadStatus: Filter by lead status (optional)
-        - email: Filter by email (optional)
-        - leadId: Filter by lead ID (optional)
-        - contactNumber: Filter by contact number (optional)
-     - Returns: SeekerResponse containing seekers and pagination info
-     - Throws: `SeekerError` if fetch fails
-     */
+    /// Fetches a paginated list of seekers from Salesforce.
+    /// - Parameters:
+    ///   - accessToken: The OAuth access token
+    ///   - instanceUrl: The Salesforce instance URL
+    ///   - pageNumber: The page number to fetch (optional, default 1)
+    ///   - pageSize: The page size to fetch (optional, default 50)
+    ///   - seekerId: Filter by seeker ID (optional)
+    ///   - name: Filter by name (optional)
+    ///   - campus: Filter by campus (optional)
+    ///   - leadStatus: Filter by lead status (optional)
+    ///   - email: Filter by email (optional)
+    ///   - leadId: Filter by lead ID (optional)
+    ///   - contactNumber: Filter by contact number (optional)
+    /// - Returns: SeekerResponse containing seekers and pagination info
+    /// - Throws: `SeekerError` if fetch fails
     func fetchAll(
         accessToken: String,
         instanceUrl: String,
@@ -129,15 +122,13 @@ public protocol SalesforceSeekerRoutes: SalesforceAPIRoute {
         contactNumber: String?
     ) async throws -> SeekerResponse
 
-    /**
-     Fetches a specific seeker by identifier (leadId or phone, case-insensitive).
-     - Parameters:
-        - identifier: The identifier to fetch (leadId or phone)
-        - accessToken: The OAuth access token
-        - instanceUrl: The Salesforce instance URL
-     - Returns: The seeker if found
-     - Throws: `SeekerError` if seeker not found or fetch fails
-     */
+    /// Fetches a specific seeker by identifier (leadId or phone, case-insensitive).
+    /// - Parameters:
+    ///   - identifier: The identifier to fetch (leadId or phone)
+    ///   - accessToken: The OAuth access token
+    ///   - instanceUrl: The Salesforce instance URL
+    /// - Returns: The seeker if found
+    /// - Throws: `SeekerError` if seeker not found or fetch fails
     func fetch(identifier: String, accessToken: String, instanceUrl: String) async throws -> Seeker
 
     /// Fetches all seekers from Salesforce (returns all seekers, not paginated)
@@ -146,4 +137,4 @@ public protocol SalesforceSeekerRoutes: SalesforceAPIRoute {
     /// - Returns: Array of seekers
     /// - Throws: `SeekerError` if fetch fails
     func fetchAll(accessToken: String, instanceUrl: String) async throws -> [Seeker]
-} 
+}

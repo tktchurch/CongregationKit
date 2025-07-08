@@ -32,8 +32,8 @@ public protocol MemberDataRepresentable: Codable, Sendable {
     var age: Int? { get }
 }
 
-public extension MemberDataRepresentable {
-    var age: Int? {
+extension MemberDataRepresentable {
+    public var age: Int? {
         guard let dob = dateOfBirth else { return nil }
         let calendar = Calendar.current
         let now = Date()
@@ -47,4 +47,4 @@ public extension MemberDataRepresentable {
         }
         return years - (hasHadBirthdayThisYear ? 0 : 1)
     }
-} 
+}

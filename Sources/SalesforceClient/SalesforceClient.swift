@@ -1,5 +1,5 @@
-import Foundation
 import AsyncHTTPClient
+import Foundation
 
 /// A client for interacting with the Salesforce API
 ///
@@ -36,18 +36,18 @@ import AsyncHTTPClient
 /// - ``auth``
 /// - ``members``
 public actor SalesforceClient {
-    
+
     /// Routes for Salesforce authentication
     public let auth: any SalesforceAuthRoutes
-    
+
     /// Routes for Salesforce member management
     public let members: any SalesforceMemberRoutes
-    
+
     /// Routes for Salesforce seeker management
     public let seekers: any SalesforceSeekerRoutes
-    
+
     private let handler: SalesforceAPIHandler
-    
+
     /// Creates a new Salesforce API client.
     /// - Parameter httpClient: The HTTP client to use for making requests
     public init(httpClient: HTTPClient) {
@@ -72,7 +72,7 @@ extension SalesforceClient {
             instanceUrl: authResponse.instanceUrl
         )
     }
-    
+
     /// Authenticates with Salesforce and fetches a specific member
     /// - Parameters:
     ///   - credentials: The Salesforce credentials
@@ -87,4 +87,4 @@ extension SalesforceClient {
             instanceUrl: authResponse.instanceUrl
         )
     }
-} 
+}

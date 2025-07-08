@@ -26,4 +26,4 @@ public protocol DiscipleshipInformationRepresentable: Sendable {
     var serving: ServingInformation? { get }
     /// The member's Bible course (picklist).
     var bibleCourse: BibleCourse? { get }
-} 
+}

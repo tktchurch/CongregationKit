@@ -25,21 +25,19 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
     /// The date the seeker was created, if available.
     public let createdDate: Date?
 
-    /**
-     Creates a new Seeker instance.
-     - Parameters:
-        - id: The unique identifier for the seeker.
-        - lead: The lead information for the seeker, if available.
-        - fullName: The seeker's full name, if available.
-        - email: The seeker's email address, if available.
-        - phone: The seeker's phone number, if available.
-        - dateOfBirth: The seeker's date of birth, if available.
-        - ageGroup: The seeker's age group (derived or provided).
-        - area: The seeker's area or locality, if available.
-        - typeOfEntry: The type of entry for the seeker (e.g., Salvation, New Visitor).
-        - maritalStatus: The seeker's marital status, if available.
-        - createdDate: The date the seeker was created, if available.
-     */
+    /// Creates a new Seeker instance.
+    /// - Parameters:
+    ///   - id: The unique identifier for the seeker.
+    ///   - lead: The lead information for the seeker, if available.
+    ///   - fullName: The seeker's full name, if available.
+    ///   - email: The seeker's email address, if available.
+    ///   - phone: The seeker's phone number, if available.
+    ///   - dateOfBirth: The seeker's date of birth, if available.
+    ///   - ageGroup: The seeker's age group (derived or provided).
+    ///   - area: The seeker's area or locality, if available.
+    ///   - typeOfEntry: The type of entry for the seeker (e.g., Salvation, New Visitor).
+    ///   - maritalStatus: The seeker's marital status, if available.
+    ///   - createdDate: The date the seeker was created, if available.
     public init(
         id: String? = nil,
         lead: Lead? = nil,
@@ -89,8 +87,10 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
     enum CodingKeys: String, CodingKey {
         case id
         case leadId = "leadIdText"
-        case fullName = "nameLocal"
-        case email = "emailAlt"
+        case fullName = "fullName"
+        case nameLocal = "nameLocal"
+        case email = "email"
+        case emailAlt = "emailAlt"
         case phone = "contactNumberMobile"
         case dateOfBirth
         case ageGroup = "age"
@@ -112,17 +112,9 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
 
     /// Equatable conformance for Seeker.
     public static func == (lhs: Seeker, rhs: Seeker) -> Bool {
-        return lhs.id == rhs.id &&
-            lhs.lead == rhs.lead &&
-            lhs.fullName == rhs.fullName &&
-            lhs.email == rhs.email &&
-            lhs.phone == rhs.phone &&
-            lhs.dateOfBirth == rhs.dateOfBirth &&
-            lhs.ageGroup == rhs.ageGroup &&
-            lhs.area == rhs.area &&
-            lhs.typeOfEntry == rhs.typeOfEntry &&
-            lhs.maritalStatus == rhs.maritalStatus &&
-            lhs.createdDate == rhs.createdDate
+        return lhs.id == rhs.id && lhs.lead == rhs.lead && lhs.fullName == rhs.fullName && lhs.email == rhs.email && lhs.phone == rhs.phone
+            && lhs.dateOfBirth == rhs.dateOfBirth && lhs.ageGroup == rhs.ageGroup && lhs.area == rhs.area
+            && lhs.typeOfEntry == rhs.typeOfEntry && lhs.maritalStatus == rhs.maritalStatus && lhs.createdDate == rhs.createdDate
     }
 }
 
@@ -134,7 +126,8 @@ extension Seeker: Codable {
             let id = try? container.decodeIfPresent(String.self, forKey: .id)
             let status: LeadStatus? = {
                 if let rawValue = try? container.decodeIfPresent(String.self, forKey: .leadStatus),
-                   let value = LeadStatus(rawValue: rawValue) {
+                    let value = LeadStatus(rawValue: rawValue)
+                {
                     return value
                 }
                 return nil
@@ -144,10 +137,16 @@ extension Seeker: Codable {
             }
             return nil
         }()
-        
+
         let id = try container.decodeIfPresent(String.self, forKey: .id)
-        let fullName = try container.decodeIfPresent(String.self, forKey: .fullName)
-        let email = try container.decodeIfPresent(String.self, forKey: .email)
+        // Prefer nameLocal, fallback to fullName
+        let fullName =
+            (try? container.decodeIfPresent(String.self, forKey: .nameLocal))
+            ?? (try? container.decodeIfPresent(String.self, forKey: .fullName))
+        // Prefer emailAlt, fallback to email
+        let email =
+            (try? container.decodeIfPresent(String.self, forKey: .emailAlt))
+            ?? (try? container.decodeIfPresent(String.self, forKey: .email))
         let phone = try container.decodeIfPresent(String.self, forKey: .phone)
         let ageGroup = try container.decodeIfPresent(String.self, forKey: .ageGroup)
         let dateOfBirth: Date? = {
@@ -158,23 +157,25 @@ extension Seeker: Codable {
             return nil
         }()
         let area = try container.decodeIfPresent(String.self, forKey: .area)
-        
+
         let typeOfEntry: TypeOfEntry? = {
             if let rawValue = try? container.decodeIfPresent(String.self, forKey: .typeOfEntry),
-               let value = TypeOfEntry(rawValue: rawValue) {
+                let value = TypeOfEntry(rawValue: rawValue)
+            {
                 return value
             }
             return nil
         }()
-        
+
         let maritalStatus: MaritalStatus? = {
             if let rawValue = try? container.decodeIfPresent(String.self, forKey: .maritalStatus),
-               let value = MaritalStatus(rawValue: rawValue) {
+                let value = MaritalStatus(rawValue: rawValue)
+            {
                 return value
             }
             return nil
         }()
-        
+
         let createdDate: Date? = {
             if let dateString = try? container.decodeIfPresent(String.self, forKey: .createdDate) {
                 let formatter = ISO8601DateFormatter()
@@ -278,12 +279,10 @@ public struct Lead: Codable, Sendable, Equatable {
     /// The status of the lead, if available.
     public let status: LeadStatus?
 
-    /**
-     Creates a new Lead instance.
-     - Parameters:
-        - id: The unique identifier for the lead.
-        - status: The status of the lead, if available.
-     */
+    /// Creates a new Lead instance.
+    /// - Parameters:
+    ///   - id: The unique identifier for the lead.
+    ///   - status: The status of the lead, if available.
     public init(id: String? = nil, status: LeadStatus? = nil) {
         self.id = id
         self.status = status
