@@ -1,60 +1,156 @@
-name: API Change Detection (Stateless)
+name: API Change Detection
 
 on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   api-check:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      # Checkout the PR branch
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for main branch comparison
+
+      # Set up Swift
       - name: Set up Swift
         uses: swift-actions/setup-swift@v2
         with:
-          swift-version: '5.9'
-      - name: Build and dump API for PR branch
+          swift-version: '5.10'
+
+      # Build and dump symbol graphs for PR branch
+      - name: Generate symbol graphs for PR branch
         run: |
-          swift build
-          swift package dump-symbol-graph Congregation > api.pr.json
-          swift package dump-symbol-graph SalesforceClient >> api.pr.json
-          swift package dump-symbol-graph CongregationKit >> api.pr.json
-      - name: Save PR API
-        run: mv api.pr.json ${{ github.workspace }}/api.pr.json
-      - name: Fetch main branch and dump API
-        run: |
-          git fetch origin main
-          git checkout origin/main
-          swift build
-          swift package dump-symbol-graph Congregation > api.main.json
-          swift package dump-symbol-graph SalesforceClient >> api.main.json
-          swift package dump-symbol-graph CongregationKit >> api.main.json
-      - name: Save main API
-        run: mv api.main.json ${{ github.workspace }}/api.main.json
-      - name: Compare APIs and save diff
-        id: diff
-        run: |
-          set +e
-          diff ${{ github.workspace }}/api.main.json ${{ github.workspace }}/api.pr.json > api.diff || true
           set -e
-      - name: Comment on PR with API diff
-        if: github.event_name == 'pull_request' && (hashFiles('api.diff') != '')
+          swift build || { echo "::error ::Swift build failed for PR branch"; exit 1; }
+          mkdir -p ${{ github.workspace }}/symbol-graphs/pr
+          for target in Congregation SalesforceClient CongregationKit; do
+            swift package dump-symbol-graph --target $target --output-dir ${{ github.workspace }}/symbol-graphs/pr \
+              || { echo "::error ::Failed to dump symbol graph for $target in PR branch"; exit 1; }
+          done
+
+      # Checkout main branch and generate symbol graphs
+      - name: Generate symbol graphs for main branch
+        run: |
+          set -e
+          git checkout origin/main
+          swift build || { echo "::error ::Swift build failed for main branch"; exit 1; }
+          mkdir -p ${{ github.workspace }}/symbol-graphs/main
+          for target in Congregation SalesforceClient CongregationKit; do
+            swift package dump-symbol-graph --target $target --output-dir ${{ github.workspace }}/symbol-graphs/main \
+              || { echo "::error ::Failed to dump symbol graph for $target in main branch"; exit 1; }
+          done
+
+      # Compare symbol graphs and generate table
+      - name: Compare symbol graphs and generate table
+        id: compare
+        run: |
+          set -e
+          echo "api_diffs=" > ${{ github.workspace }}/diff_output.txt
+          has_diff=false
+          diff_content=""
+          for target in Congregation SalesforceClient CongregationKit; do
+            main_json="${{ github.workspace }}/symbol-graphs/main/${target}.symbols.json"
+            pr_json="${{ github.workspace }}/symbol-graphs/pr/${target}.symbols.json"
+            diff_file="${{ github.workspace }}/symbol-graphs/diff_${target}.txt"
+            # Generate raw diff for debugging
+            diff "$main_json" "$pr_json" > "$diff_file" 2>/dev/null || true
+            # Extract symbols for comparison
+            main_symbols=$(jq -c '.symbols[] | {kind: .kind.identifier, identifier: .identifier.precise, type: .declarations.declarationFragments[0].spelling?}' "$main_json")
+            pr_symbols=$(jq -c '.symbols[] | {kind: .kind.identifier, identifier: .identifier.precise, type: .declarations.declarationFragments[0].spelling?}' "$pr_json")
+            # Initialize target-specific table
+            target_summary=""
+            target_summary+="\n### $target API Changes\n"
+            target_summary+="| Change Type | Symbol Kind | Identifier | Details |\n"
+            target_summary+="|-------------|-------------|------------|---------|\n"
+            # Check for added symbols
+            while IFS= read -r pr_symbol; do
+              pr_id=$(echo "$pr_symbol" | jq -r '.identifier')
+              pr_kind=$(echo "$pr_symbol" | jq -r '.kind')
+              pr_type=$(echo "$pr_symbol" | jq -r '.type // "unknown"')
+              if ! echo "$main_symbols" | grep -q "$pr_id"; then
+                target_summary+="| Added | $pr_kind | \`$pr_id\` | Type: $pr_type |\n"
+                has_diff=true
+              fi
+            done <<< "$pr_symbols"
+            # Check for removed symbols
+            while IFS= read -r main_symbol; do
+              main_id=$(echo "$main_symbol" | jq -r '.identifier')
+              main_kind=$(echo "$main_symbol" | jq -r '.kind')
+              main_type=$(echo "$main_symbol" | jq -r '.type // "unknown"')
+              if ! echo "$pr_symbols" | grep -q "$main_id"; then
+                target_summary+="| Removed | $main_kind | \`$main_id\` | Type: $main_type |\n"
+                has_diff=true
+              fi
+            done <<< "$main_symbols"
+            # Check for modified symbols (type changes)
+            while IFS= read -r pr_symbol; do
+              pr_id=$(echo "$pr_symbol" | jq -r '.identifier')
+              pr_kind=$(echo "$pr_symbol" | jq -r '.kind')
+              pr_type=$(echo "$pr_symbol" | jq -r '.type // "unknown"')
+              main_symbol=$(echo "$main_symbols" | grep "$pr_id" || true)
+              if [ -n "$main_symbol" ]; then
+                main_type=$(echo "$main_symbol" | jq -r '.type // "unknown"')
+                if [ "$pr_type" != "$main_type" ]; then
+                  target_summary+="| Modified | $pr_kind | \`$pr_id\` | Type changed from $main_type to $pr_type |\n"
+                  has_diff=true
+                fi
+              fi
+            done <<< "$pr_symbols"
+            # Append to diff content if changes exist
+            if [[ "$target_summary" != *"Change Type | Symbol Kind | Identifier | Details"* ]]; then
+              diff_content+="$target_summary\n"
+            fi
+          done
+          # Add note if no changes detected
+          if [ "$has_diff" = "false" ]; then
+            diff_content+="\nNo public API changes detected.\n"
+          fi
+          echo "has_diff=$has_diff" >> $GITHUB_OUTPUT
+          echo "diff_content<<EOF" >> ${{ github.workspace }}/diff_output.txt
+          echo -e "$diff_content" >> ${{ github.workspace }}/diff_output.txt
+          echo "EOF" >> ${{ github.workspace }}/diff_output.txt
+
+      # Archive raw diffs as artifacts for debugging
+      - name: Archive raw JSON diffs
+        if: steps.compare.outputs.has_diff == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-api-diffs
+          path: ${{ github.workspace }}/symbol-graphs/diff_*.txt
+          retention-days: 7
+
+      # Post PR comment with table
+      - name: Comment on PR with API changes
+        if: always()
         uses: peter-evans/create-or-update-comment@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            ## 🛑 Public API Diff Detected
-            <details>
-            <summary>Click to expand API diff</summary>
+            ## 🛑 Public API Change Detection Results
+            
+            $(cat ${{ github.workspace }}/diff_output.txt | grep -A 1000 'diff_content' | sed '1d; /^EOF$/d')
+            
+            Raw JSON diffs are available as artifacts for detailed inspection (if changes were detected).
+            Please review any API changes to ensure they are intentional. Public API changes may require versioning or additional documentation.
 
-            ```diff
-            $(cat api.diff)
-            ```
-            </details>
-      - name: Fail if API changed
+      # Fail the build if API changes are detected
+      - name: Fail if API changes detected
+        if: steps.compare.outputs.has_diff == 'true'
         run: |
-          if [ -s api.diff ]; then
-            echo "::error ::Public API has changed!"
-            exit 1
-          fi 
+          echo "::error ::Public API changes detected. See PR comment for details."
+          exit 1
+
+      # Clean up temporary files
+      - name: Clean up
+        if: always()
+        run: |
+          rm -rf ${{ github.workspace }}/symbol-graphs
+          rm -f ${{ github.workspace }}/diff_output.txt
