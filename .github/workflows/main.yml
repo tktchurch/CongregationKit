@@ -10,7 +10,7 @@ on:
 
 jobs:
   ubuntu_test:
-    name: Ubuntu Build & Test
+    name: Ubuntu Build
     runs-on: ubuntu-22.04
     container: swift:6.0-jammy
     steps:
@@ -18,7 +18,7 @@ jobs:
     - name: Build
       run: swift build -v
   macos_test:
-    name: macOS Build & Test
+    name: macOS Build
     runs-on: macos-15
     steps:
     - name: Select appropriate Xcode version

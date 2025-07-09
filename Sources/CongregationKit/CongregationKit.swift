@@ -2,6 +2,7 @@
 // https://docs.swift.org/swift-book
 
 import AsyncHTTPClient
+import Congregation
 import Foundation
 import SalesforceClient
 @_exported import SalesforceClient

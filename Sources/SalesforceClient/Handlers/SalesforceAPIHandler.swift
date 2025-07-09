@@ -1,4 +1,5 @@
 import AsyncHTTPClient
+import Congregation
 import Foundation
 import NIOCore
 import NIOHTTP1
@@ -126,8 +127,8 @@ public actor SalesforceAPIHandler {
 
         let body = try await response.body.collect(upTo: 1024 * 1024)
         let data = Data(body.readableBytesView)
-
-        return try JSONDecoder().decode(type, from: data)
+        let jsonData = try JSONDecoder().decode(type, from: data)
+        return jsonData
     }
 
     /// Creates form-encoded body for OAuth requests

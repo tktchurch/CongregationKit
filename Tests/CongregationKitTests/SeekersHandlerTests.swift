@@ -1,3 +1,4 @@
+import Congregation
 import CongregationKit
 import Foundation
 import SalesforceClient
@@ -58,5 +59,38 @@ actor SeekersHandlerTests {
         }
         let seeker = try await handler.fetch(identifier: identifier)
         #expect(seeker != nil)
+    }
+
+    @Test("Fetch all seekers across all pages (pagination, decoding check)")
+    func testFetchAllSeekersAllPages() async throws {
+        let pageSize = 10
+        var allSeekers: [Seeker] = []
+        var nextPageToken: String? = nil
+        var totalRecords: Int? = nil
+        var pageNumber = 1
+        repeat {
+            do {
+                let response = try await handler.fetchAll(
+                    pageNumber: nil, pageSize: pageSize, nextPageToken: nextPageToken, seekerId: nil, name: nil, campus: nil,
+                    leadStatus: nil, email: nil, leadId: nil, contactNumber: nil)
+                if totalRecords == nil {
+                    totalRecords = response.metadata?.total
+                }
+                print(
+                    "[DEBUG] Page \(pageNumber): Fetched \(response.seekers.count) seekers, nextPageToken: \(String(describing: response.metadata?.nextPageToken))"
+                )
+                if response.seekers.count < pageSize && response.metadata?.nextPageToken != nil {
+                    print("[WARNING] Page \(pageNumber) returned fewer than pageSize seekers but nextPageToken is not nil!")
+                }
+                allSeekers.append(contentsOf: response.seekers)
+                nextPageToken = response.metadata?.nextPageToken
+                if response.seekers.isEmpty || nextPageToken == nil { break }
+                pageNumber += 1
+            } catch {
+                print("[ERROR] Decoding or API error on page \(pageNumber):", error)
+                throw error
+            }
+        } while allSeekers.count < (totalRecords ?? Int.max)
+        print("[DEBUG] Total seekers fetched: \(allSeekers.count), totalRecords: \(String(describing: totalRecords))")
     }
 }

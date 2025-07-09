@@ -21,11 +21,22 @@ public struct MemberResponse: Codable, Sendable {
         public let total: Int?
         /// The current page number.
         public let page: Int?
+        /// The next page token for cursor-based pagination.
+        public let nextPageToken: String?
+        /// The previous page token for cursor-based pagination.
+        public let previousPageToken: String?
+        public init(per: Int?, total: Int?, page: Int?, nextPageToken: String?, previousPageToken: String?) {
+            self.per = per
+            self.total = total
+            self.page = page
+            self.nextPageToken = nextPageToken
+            self.previousPageToken = previousPageToken
+        }
     }
 
     enum CodingKeys: String, CodingKey {
         case members
-        case member = "member"
+        case member
         case error
         case message
         // Pagination keys
@@ -33,6 +44,8 @@ public struct MemberResponse: Codable, Sendable {
         case pageSize
         case pageNumber
         case success
+        case nextPageToken
+        case previousPageToken
     }
 
     public init(from decoder: Decoder) throws {
@@ -41,14 +54,26 @@ public struct MemberResponse: Codable, Sendable {
         if let members = try? container.decode([Member].self, forKey: .members) {
             self.members = members
         } else {
-            self.members = (try? container.decode([Member].self, forKey: .member)) ?? []
+            do {
+                self.members = try container.decode([Member].self, forKey: .members)
+            } catch {
+                print("[DEBUG] Failed to decode 'members' array: \(error)")
+                do {
+                    self.members = try container.decode([Member].self, forKey: .member)
+                } catch {
+                    print("[DEBUG] Failed to decode 'member' array (legacy): \(error)")
+                    self.members = []
+                }
+            }
         }
         // Extract pagination info from top-level keys
         let per = try? container.decodeIfPresent(Int.self, forKey: .pageSize)
         let total = try? container.decodeIfPresent(Int.self, forKey: .totalRecords)
         let page = try? container.decodeIfPresent(Int.self, forKey: .pageNumber)
-        if per != nil || total != nil || page != nil {
-            self.metadata = Metadata(per: per, total: total, page: page)
+        let nextPageToken = try? container.decodeIfPresent(String.self, forKey: .nextPageToken)
+        let previousPageToken = try? container.decodeIfPresent(String.self, forKey: .previousPageToken)
+        if per != nil || total != nil || page != nil || nextPageToken != nil || previousPageToken != nil {
+            self.metadata = Metadata(per: per, total: total, page: page, nextPageToken: nextPageToken, previousPageToken: previousPageToken)
         } else {
             self.metadata = nil
         }
@@ -85,7 +110,7 @@ extension MemberResponse {
     // Convenience initializer for paginated response
     public init(members: [Member], per: Int, total: Int, page: Int) {
         self.members = members
-        self.metadata = Metadata(per: per, total: total, page: page)
+        self.metadata = Metadata(per: per, total: total, page: page, nextPageToken: nil, previousPageToken: nil)
         self.error = nil
         self.message = nil
     }

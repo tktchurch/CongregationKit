@@ -16,6 +16,10 @@ let package = Package(
             targets: ["CongregationKit"]
         ),
         .library(
+            name: "Congregation",
+            targets: ["Congregation"]
+        ),
+        .library(
             name: "SalesforceClient",
             targets: ["SalesforceClient"]
         ),
@@ -28,14 +32,19 @@ let package = Package(
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
+            name: "Congregation",
+            path: "Sources/Congregation"
+        ),
+        .target(
             name: "CongregationKit",
-            dependencies: ["SalesforceClient"],
+            dependencies: ["SalesforceClient", "Congregation"],
             path: "Sources/CongregationKit"
         ),
         .target(
             name: "SalesforceClient",
             dependencies: [
-                .product(name: "AsyncHTTPClient", package: "async-http-client")
+                "Congregation",
+                .product(name: "AsyncHTTPClient", package: "async-http-client"),
             ],
             path: "Sources/SalesforceClient"
         ),
