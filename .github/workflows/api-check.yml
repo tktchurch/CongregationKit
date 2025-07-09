@@ -30,11 +30,13 @@ jobs:
           set -e
           swift build || { echo "::error ::Swift build failed for PR branch"; exit 1; }
           mkdir -p ${{ github.workspace }}/symbol-graphs/pr
-          swift package dump-symbol-graph --output-dir ${{ github.workspace }}/symbol-graphs/pr --skip-synthesized-members \
+          swift package dump-symbol-graph --skip-synthesized-members \
             || { echo "::error ::Failed to dump symbol graph for PR branch. Ensure no test targets are included."; exit 1; }
-          # Verify expected symbol graph files exist (exclude test targets)
+          # Move generated symbol graph files to symbol-graphs/pr
           for module in Congregation SalesforceClient CongregationKit; do
-            if [ ! -f "${{ github.workspace }}/symbol-graphs/pr/${module}.symbols.json" ]; then
+            if [ -f "${module}.symbols.json" ]; then
+              mv "${module}.symbols.json" "${{ github.workspace }}/symbol-graphs/pr/${module}.symbols.json"
+            else
               echo "::error ::Symbol graph file for $module not found in PR branch"
               exit 1
             fi
@@ -47,11 +49,13 @@ jobs:
           git checkout origin/main
           swift build || { echo "::error ::Swift build failed for main branch"; exit 1; }
           mkdir -p ${{ github.workspace }}/symbol-graphs/main
-          swift package dump-symbol-graph --output-dir ${{ github.workspace }}/symbol-graphs/main --skip-synthesized-members \
+          swift package dump-symbol-graph --skip-synthesized-members \
             || { echo "::error ::Failed to dump symbol graph for main branch. Ensure no test targets are included."; exit 1; }
-          # Verify expected symbol graph files exist (exclude test targets)
+          # Move generated symbol graph files to symbol-graphs/main
           for module in Congregation SalesforceClient CongregationKit; do
-            if [ ! -f "${{ github.workspace }}/symbol-graphs/main/${module}.symbols.json" ]; then
+            if [ -f "${module}.symbols.json" ]; then
+              mv "${module}.symbols.json" "${{ github.workspace }}/symbol-graphs/main/${module}.symbols.json"
+            else
               echo "::error ::Symbol graph file for $module not found in main branch"
               exit 1
             fi
@@ -164,3 +168,4 @@ jobs:
         run: |
           rm -rf ${{ github.workspace }}/symbol-graphs
           rm -f ${{ github.workspace }}/diff_output.txt
+          rm -f *.symbols.json  # Clean up any leftover symbol graph files in the working directory
