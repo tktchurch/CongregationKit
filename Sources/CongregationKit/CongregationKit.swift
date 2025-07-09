@@ -3,6 +3,7 @@
 
 import AsyncHTTPClient
 import Foundation
+import Congregation
 import SalesforceClient
 @_exported import SalesforceClient
 

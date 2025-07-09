@@ -1,4 +1,5 @@
 import AsyncHTTPClient
+import Congregation
 import Foundation
 import NIOHTTP1
 

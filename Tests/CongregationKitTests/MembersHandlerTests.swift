@@ -1,3 +1,4 @@
+import Congregation
 import CongregationKit
 import Foundation
 import SalesforceClient

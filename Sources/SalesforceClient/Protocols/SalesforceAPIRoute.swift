@@ -1,4 +1,5 @@
 import AsyncHTTPClient
+import Congregation
 import Foundation
 import NIOHTTP1
 
@@ -15,18 +16,6 @@ public protocol SalesforceAuthRoutes: SalesforceAPIRoute {
     /// - Returns: Authentication response containing access token and instance URL
     /// - Throws: `SalesforceAuthError` if authentication fails
     func authenticate(credentials: SalesforceCredentials) async throws -> SalesforceAuthResponse
-}
-
-/// Enum specifying which related information to expand for a member fetch.
-public enum MemberExpand: String, Codable, Sendable {
-    /// Expand employment information
-    case employmentInformation
-    /// Expand contact information
-    case contactInformation
-    /// Expand martial information
-    case martialInformation
-    /// Expand discipleship and spiritual information
-    case discipleshipInformation
 }
 
 /// Protocol for Salesforce member routes

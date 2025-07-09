@@ -1,6 +1,7 @@
 import AsyncHTTPClient
 import Foundation
 import NIOHTTP1
+import Congregation
 
 /// Implementation of Salesforce member routes
 public struct SalesforceMemberRoutesImpl: SalesforceMemberRoutes {

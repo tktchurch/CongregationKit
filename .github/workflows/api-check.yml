@@ -1,0 +1,60 @@
+name: API Change Detection (Stateless)
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  api-check:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Swift
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: '5.9'
+      - name: Build and dump API for PR branch
+        run: |
+          swift build
+          swift package dump-symbol-graph --module-name Congregation > api.pr.json
+          swift package dump-symbol-graph --module-name SalesforceClient >> api.pr.json
+          swift package dump-symbol-graph --module-name CongregationKit >> api.pr.json
+      - name: Save PR API
+        run: mv api.pr.json ${{ github.workspace }}/api.pr.json
+      - name: Fetch main branch and dump API
+        run: |
+          git fetch origin main
+          git checkout origin/main
+          swift build
+          swift package dump-symbol-graph --module-name Congregation > api.main.json
+          swift package dump-symbol-graph --module-name SalesforceClient >> api.main.json
+          swift package dump-symbol-graph --module-name CongregationKit >> api.main.json
+      - name: Save main API
+        run: mv api.main.json ${{ github.workspace }}/api.main.json
+      - name: Compare APIs and save diff
+        id: diff
+        run: |
+          set +e
+          diff ${{ github.workspace }}/api.main.json ${{ github.workspace }}/api.pr.json > api.diff || true
+          set -e
+      - name: Comment on PR with API diff
+        if: github.event_name == 'pull_request' && (hashFiles('api.diff') != '')
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ## 🛑 Public API Diff Detected
+            <details>
+            <summary>Click to expand API diff</summary>
+
+            ```diff
+            $(cat api.diff)
+            ```
+            </details>
+      - name: Fail if API changed
+        run: |
+          if [ -s api.diff ]; then
+            echo "::error ::Public API has changed!"
+            exit 1
+          fi 

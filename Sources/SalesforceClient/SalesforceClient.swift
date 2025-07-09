@@ -1,4 +1,5 @@
 import AsyncHTTPClient
+import Congregation
 import Foundation
 
 /// A client for interacting with the Salesforce API
