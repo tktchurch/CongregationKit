@@ -16,6 +16,10 @@ let package = Package(
             targets: ["CongregationKit"]
         ),
         .library(
+            name: "Congregation",
+            targets: ["Congregation"]
+        ),
+        .library(
             name: "SalesforceClient",
             targets: ["SalesforceClient"]
         ),
