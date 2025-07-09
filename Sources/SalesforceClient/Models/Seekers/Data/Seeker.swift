@@ -122,23 +122,24 @@ extension Seeker: Codable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
-        let lead: Lead? = {
-            let id = try? container.decodeIfPresent(String.self, forKey: .id)
-            let status: LeadStatus? = {
-                if let rawValue = try? container.decodeIfPresent(String.self, forKey: .leadStatus),
-                    let value = LeadStatus(rawValue: rawValue)
-                {
-                    return value
-                }
-                return nil
-            }()
-            if id != nil || status != nil {
-                return Lead(id: id, status: status)
+        // Top-level seeker id
+        let id = try container.decodeIfPresent(String.self, forKey: .id)
+        // Lead id from leadIdText
+        let leadId = try container.decodeIfPresent(String.self, forKey: .leadId)
+        let leadStatus: LeadStatus? = {
+            if let rawValue = try? container.decodeIfPresent(String.self, forKey: .leadStatus),
+                let value = LeadStatus(rawValue: rawValue)
+            {
+                return value
             }
             return nil
         }()
-
-        let id = try container.decodeIfPresent(String.self, forKey: .id)
+        let lead: Lead? = {
+            if leadId != nil || leadStatus != nil {
+                return Lead(id: leadId, status: leadStatus)
+            }
+            return nil
+        }()
         // Prefer nameLocal, fallback to fullName
         let fullName =
             (try? container.decodeIfPresent(String.self, forKey: .nameLocal))
