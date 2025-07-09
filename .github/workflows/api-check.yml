@@ -32,12 +32,20 @@ jobs:
           mkdir -p ${{ github.workspace }}/symbol-graphs/pr
           swift package dump-symbol-graph --skip-synthesized-members \
             || { echo "::error ::Failed to dump symbol graph for PR branch. Ensure no test targets are included."; exit 1; }
+          # Find the symbol graph output directory
+          symbolgraph_dir=$(find .build -type d -name symbolgraph -print -quit)
+          if [ -z "$symbolgraph_dir" ]; then
+            echo "::error ::Symbol graph output directory not found in .build"
+            exit 1
+          fi
           # Move generated symbol graph files to symbol-graphs/pr
           for module in Congregation SalesforceClient CongregationKit; do
-            if [ -f "${module}.symbols.json" ]; then
-              mv "${module}.symbols.json" "${{ github.workspace }}/symbol-graphs/pr/${module}.symbols.json"
+            src_file="${symbolgraph_dir}/${module}.symbols.json"
+            dst_file="${{ github.workspace }}/symbol-graphs/pr/${module}.symbols.json"
+            if [ -f "$src_file" ]; then
+              mv "$src_file" "$dst_file"
             else
-              echo "::error ::Symbol graph file for $module not found in PR branch"
+              echo "::error ::Symbol graph file for $module not found in $symbolgraph_dir"
               exit 1
             fi
           done
@@ -51,12 +59,20 @@ jobs:
           mkdir -p ${{ github.workspace }}/symbol-graphs/main
           swift package dump-symbol-graph --skip-synthesized-members \
             || { echo "::error ::Failed to dump symbol graph for main branch. Ensure no test targets are included."; exit 1; }
+          # Find the symbol graph output directory
+          symbolgraph_dir=$(find .build -type d -name symbolgraph -print -quit)
+          if [ -z "$symbolgraph_dir" ]; then
+            echo "::error ::Symbol graph output directory not found in .build"
+            exit 1
+          fi
           # Move generated symbol graph files to symbol-graphs/main
           for module in Congregation SalesforceClient CongregationKit; do
-            if [ -f "${module}.symbols.json" ]; then
-              mv "${module}.symbols.json" "${{ github.workspace }}/symbol-graphs/main/${module}.symbols.json"
+            src_file="${symbolgraph_dir}/${module}.symbols.json"
+            dst_file="${{ github.workflow }}/symbol-graphs/main/${module}.symbols.json"
+            if [ -f "$src_file" ]; then
+              mv "$src_file" "$dst_file"
             else
-              echo "::error ::Symbol graph file for $module not found in main branch"
+              echo "::error ::Symbol graph file for $module not found in $symbolgraph_dir"
               exit 1
             fi
           done
@@ -118,7 +134,7 @@ jobs:
               fi
             done <<< "$pr_symbols"
             # Append to diff content if changes exist
-            if [[ "$module_summary" != *"Change Type | Symbol Kind | Identifier | Details"* ]]; then
+            if [[ "$module_summary" != *"Change Type | Symbol Kind | Identifier Graph"* ]]; then
               diff_content+="$module_summary\n"
             fi
           done
@@ -128,7 +144,7 @@ jobs:
           fi
           echo "has_diff=$has_diff" >> $GITHUB_OUTPUT
           echo "diff_content<<EOF" >> ${{ github.workspace }}/diff_output.txt
-          echo -e "$diff_content" >> ${{ github.workspace }}/diff_output.txt
+          echo "$diff_content" >> ${{ github.workspace }}/diff_output.txt
           echo "EOF" >> ${{ github.workspace }}/diff_output.txt
 
       # Archive raw diffs as artifacts for debugging
@@ -167,5 +183,5 @@ jobs:
         if: always()
         run: |
           rm -rf ${{ github.workspace }}/symbol-graphs
+          rm -rf .build/*/symbolgraph
           rm -f ${{ github.workspace }}/diff_output.txt
-          rm -f *.symbols.json  # Clean up any leftover symbol graph files in the working directory
