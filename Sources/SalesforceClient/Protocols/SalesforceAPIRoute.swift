@@ -58,7 +58,8 @@ public protocol SalesforceMemberRoutes: SalesforceAPIRoute {
     ///   - nextPageToken: The next page token for cursor-based pagination (optional)
     /// - Returns: MemberResponse containing members and pagination info
     /// - Throws: `MemberError` if fetch fails
-    func fetchAll(accessToken: String, instanceUrl: String, pageNumber: Int?, pageSize: Int?, nextPageToken: String?) async throws -> MemberResponse
+    func fetchAll(accessToken: String, instanceUrl: String, pageNumber: Int?, pageSize: Int?, nextPageToken: String?) async throws
+        -> MemberResponse
 
     /// Fetches a specific member by ID (deprecated, use fetch(validatedMemberId:...))
     /// - Parameters:
@@ -166,7 +167,8 @@ public protocol SalesforceSeekerRoutes: SalesforceAPIRoute {
     ///   - nextPageToken: The next page token for cursor-based pagination (optional)
     /// - Returns: SeekerResponse containing seekers and pagination info
     /// - Throws: `SeekerError` if fetch fails
-    func fetchAll(accessToken: String, instanceUrl: String, pageNumber: Int?, pageSize: Int?, nextPageToken: String?) async throws -> SeekerResponse
+    func fetchAll(accessToken: String, instanceUrl: String, pageNumber: Int?, pageSize: Int?, nextPageToken: String?) async throws
+        -> SeekerResponse
 
     /// Fetches all seekers from Salesforce with pagination support (cursor-based, supports nextPageToken and filters)
     /// - Parameters:

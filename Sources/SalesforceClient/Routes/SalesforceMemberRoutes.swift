@@ -37,9 +37,14 @@ public struct SalesforceMemberRoutesImpl: SalesforceMemberRoutes {
     }
 
     /// Deprecated: Use the new fetchAll with nextPageToken for cursor-based pagination.
-    @available(*, deprecated, message: "Use fetchAll(accessToken:instanceUrl:pageNumber:pageSize:nextPageToken:) for cursor-based pagination.")
-    public func fetchAll(accessToken: String, instanceUrl: String, pageNumber: Int? = nil, pageSize: Int? = nil) async throws -> MemberResponse {
-        return try await fetchAll(accessToken: accessToken, instanceUrl: instanceUrl, pageNumber: pageNumber, pageSize: pageSize, nextPageToken: nil)
+    @available(
+        *, deprecated, message: "Use fetchAll(accessToken:instanceUrl:pageNumber:pageSize:nextPageToken:) for cursor-based pagination."
+    )
+    public func fetchAll(accessToken: String, instanceUrl: String, pageNumber: Int? = nil, pageSize: Int? = nil) async throws
+        -> MemberResponse
+    {
+        return try await fetchAll(
+            accessToken: accessToken, instanceUrl: instanceUrl, pageNumber: pageNumber, pageSize: pageSize, nextPageToken: nil)
     }
 
     /// Fetches all members from Salesforce with pagination support (v2 endpoint).
@@ -52,7 +57,9 @@ public struct SalesforceMemberRoutesImpl: SalesforceMemberRoutes {
     ///   - nextPageToken: The next page token for cursor-based pagination (optional).
     /// - Returns: MemberResponse containing members and pagination info.
     /// - Throws: `MemberError` if fetch fails.
-    public func fetchAll(accessToken: String, instanceUrl: String, pageNumber: Int? = nil, pageSize: Int? = nil, nextPageToken: String? = nil) async throws -> MemberResponse {
+    public func fetchAll(
+        accessToken: String, instanceUrl: String, pageNumber: Int? = nil, pageSize: Int? = nil, nextPageToken: String? = nil
+    ) async throws -> MemberResponse {
         let size = pageSize ?? 50
         var queryParams: [String: String] = ["pageSize": String(size)]
         if let token = nextPageToken {
@@ -101,7 +108,7 @@ public struct SalesforceMemberRoutesImpl: SalesforceMemberRoutes {
             )
             let decoded = try await client.processResponse(response, as: MemberResponse.self)
             guard let nextToken = decoded.metadata?.nextPageToken, !decoded.members.isEmpty else {
-                return decoded // End of data or error
+                return decoded  // End of data or error
             }
             currentToken = nextToken
             lastResponse = decoded

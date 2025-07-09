@@ -166,7 +166,7 @@ public enum MissionaryType: String, Codable, CaseIterable, Sendable {
 public enum SubscriptionStatus: String, Codable, CaseIterable, Sendable {
     case yes = "Yes"
     case no = "No"
-    case informed = "Informed" 
+    case informed = "Informed"
     case unknown
     public var displayName: String {
         switch self {

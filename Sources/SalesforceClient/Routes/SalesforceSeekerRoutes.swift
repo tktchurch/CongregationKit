@@ -4,7 +4,7 @@ import NIOHTTP1
 
 /// Implementation of Salesforce seeker routes
 public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
-    
+
     public var headers: HTTPHeaders = [:]
     private let client: SalesforceAPIHandler
 
@@ -12,24 +12,23 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
         self.client = client
     }
 
-    /**
-     Fetches a paginated list of seekers from Salesforce with full filtering and cursor-based pagination support.
-     - Parameters:
-        - accessToken: The OAuth access token.
-        - instanceUrl: The Salesforce instance URL.
-        - pageNumber: The page number to fetch (optional, default 1).
-        - pageSize: The page size to fetch (optional, default 50).
-        - nextPageToken: The next page token for cursor-based pagination (optional).
-        - seekerId: Filter by seeker ID (optional).
-        - name: Filter by name (optional).
-        - campus: Filter by campus (optional).
-        - leadStatus: Filter by lead status (optional).
-        - email: Filter by email (optional).
-        - leadId: Filter by lead ID (optional).
-        - contactNumber: Filter by contact number (optional).
-     - Returns: SeekerResponse containing seekers and pagination info.
-     - Throws: `SeekerError` if fetch fails.
-     */
+    ///
+    /// Fetches a paginated list of seekers from Salesforce with full filtering and cursor-based pagination support.
+    /// - Parameters:
+    ///    - accessToken: The OAuth access token.
+    ///    - instanceUrl: The Salesforce instance URL.
+    ///    - pageNumber: The page number to fetch (optional, default 1).
+    ///    - pageSize: The page size to fetch (optional, default 50).
+    ///    - nextPageToken: The next page token for cursor-based pagination (optional).
+    ///    - seekerId: Filter by seeker ID (optional).
+    ///    - name: Filter by name (optional).
+    ///    - campus: Filter by campus (optional).
+    ///    - leadStatus: Filter by lead status (optional).
+    ///    - email: Filter by email (optional).
+    ///    - leadId: Filter by lead ID (optional).
+    ///    - contactNumber: Filter by contact number (optional).
+    /// - Returns: SeekerResponse containing seekers and pagination info.
+    /// - Throws: `SeekerError` if fetch fails.
     private func fetchAllImpl(
         accessToken: String,
         instanceUrl: String,
@@ -104,7 +103,7 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
             )
             let decoded = try await client.processResponse(response, as: SeekerResponse.self)
             guard let nextToken = decoded.metadata?.nextPageToken, !decoded.seekers.isEmpty else {
-                return decoded // End of data or error
+                return decoded  // End of data or error
             }
             currentToken = nextToken
             lastResponse = decoded
@@ -251,9 +250,15 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
     /// - Parameters: See `fetchAllImpl`.
     /// - Returns: SeekerResponse containing seekers and pagination info.
     /// - Throws: `SeekerError` if fetch fails.
-    @available(*, deprecated, message: "Use fetchAll(accessToken:instanceUrl:pageNumber:pageSize:nextPageToken:) for cursor-based pagination.")
-    public func fetchAll(accessToken: String, instanceUrl: String, pageNumber: Int? = nil, pageSize: Int? = nil) async throws -> SeekerResponse {
-        return try await fetchAllImpl(accessToken: accessToken, instanceUrl: instanceUrl, pageNumber: pageNumber, pageSize: pageSize, nextPageToken: nil, seekerId: nil, name: nil, campus: nil, leadStatus: nil, email: nil, leadId: nil, contactNumber: nil)
+    @available(
+        *, deprecated, message: "Use fetchAll(accessToken:instanceUrl:pageNumber:pageSize:nextPageToken:) for cursor-based pagination."
+    )
+    public func fetchAll(accessToken: String, instanceUrl: String, pageNumber: Int? = nil, pageSize: Int? = nil) async throws
+        -> SeekerResponse
+    {
+        return try await fetchAllImpl(
+            accessToken: accessToken, instanceUrl: instanceUrl, pageNumber: pageNumber, pageSize: pageSize, nextPageToken: nil,
+            seekerId: nil, name: nil, campus: nil, leadStatus: nil, email: nil, leadId: nil, contactNumber: nil)
     }
 
     /// Fetches all seekers from Salesforce (returns all seekers, not paginated)
@@ -263,7 +268,9 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
     /// - Returns: Array of seekers.
     /// - Throws: `SeekerError` if fetch fails.
     public func fetchAll(accessToken: String, instanceUrl: String) async throws -> [Seeker] {
-        let response = try await fetchAllImpl(accessToken: accessToken, instanceUrl: instanceUrl, pageNumber: 1, pageSize: 1000, nextPageToken: nil, seekerId: nil, name: nil, campus: nil, leadStatus: nil, email: nil, leadId: nil, contactNumber: nil)
+        let response = try await fetchAllImpl(
+            accessToken: accessToken, instanceUrl: instanceUrl, pageNumber: 1, pageSize: 1000, nextPageToken: nil, seekerId: nil, name: nil,
+            campus: nil, leadStatus: nil, email: nil, leadId: nil, contactNumber: nil)
         return response.seekers
     }
 

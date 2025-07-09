@@ -54,7 +54,7 @@ actor MembersHandlerTests {
     @Test("Fetch member by ID")
     func testFetchMemberById() async throws {
         guard let testMemberId = ProcessInfo.processInfo.environment["TEST_MEMBER_ID"],
-              let memberId = MemberID(rawValue: testMemberId)
+            let memberId = MemberID(rawValue: testMemberId)
         else {
             print("[DEBUG] No TEST_MEMBER_ID set in environment. Skipping fetch by ID test.")
             return
@@ -66,7 +66,7 @@ actor MembersHandlerTests {
     @Test("Fetch member by ID (expanded fields)")
     func testFetchMemberByIdExpanded() async throws {
         guard let testMemberId = ProcessInfo.processInfo.environment["TEST_MEMBER_ID"],
-              let memberId = MemberID(rawValue: testMemberId)
+            let memberId = MemberID(rawValue: testMemberId)
         else {
             print("[DEBUG] No TEST_MEMBER_ID set in environment. Skipping fetch by ID (expanded) test.")
             return

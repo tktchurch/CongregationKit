@@ -69,11 +69,15 @@ actor SeekersHandlerTests {
         var pageNumber = 1
         repeat {
             do {
-                let response = try await handler.fetchAll(pageNumber: nil, pageSize: pageSize, nextPageToken: nextPageToken, seekerId: nil, name: nil, campus: nil, leadStatus: nil, email: nil, leadId: nil, contactNumber: nil)
+                let response = try await handler.fetchAll(
+                    pageNumber: nil, pageSize: pageSize, nextPageToken: nextPageToken, seekerId: nil, name: nil, campus: nil,
+                    leadStatus: nil, email: nil, leadId: nil, contactNumber: nil)
                 if totalRecords == nil {
                     totalRecords = response.metadata?.total
                 }
-                print("[DEBUG] Page \(pageNumber): Fetched \(response.seekers.count) seekers, nextPageToken: \(String(describing: response.metadata?.nextPageToken))")
+                print(
+                    "[DEBUG] Page \(pageNumber): Fetched \(response.seekers.count) seekers, nextPageToken: \(String(describing: response.metadata?.nextPageToken))"
+                )
                 if response.seekers.count < pageSize && response.metadata?.nextPageToken != nil {
                     print("[WARNING] Page \(pageNumber) returned fewer than pageSize seekers but nextPageToken is not nil!")
                 }
