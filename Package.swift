@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -29,14 +29,12 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "Congregation",
-            path: "Sources/Congregation",
-            swiftSettings: swiftSettings
+            path: "Sources/Congregation"
         ),
         .target(
             name: "CongregationKit",
             dependencies: ["SalesforceClient", "Congregation"],
-            path: "Sources/CongregationKit",
-            swiftSettings: swiftSettings
+            path: "Sources/CongregationKit"
         ),
         .target(
             name: "SalesforceClient",
@@ -44,20 +42,14 @@ let package = Package(
                 "Congregation",
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
             ],
-            path: "Sources/SalesforceClient",
-            swiftSettings: swiftSettings
+            path: "Sources/SalesforceClient"
         ),
         .testTarget(
             name: "CongregationKitTests",
             dependencies: [
                 "CongregationKit",
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
-            ],
-            swiftSettings: swiftSettings
+            ]
         ),
     ]
 )
-
-var swiftSettings: [SwiftSetting] = [
-    .enableUpcomingFeature("StrictConcurrency")
-]
