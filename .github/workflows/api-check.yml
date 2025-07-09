@@ -16,9 +16,9 @@ jobs:
       - name: Build and dump API for PR branch
         run: |
           swift build
-          swift package dump-symbol-graph --module-name Congregation > api.pr.json
-          swift package dump-symbol-graph --module-name SalesforceClient >> api.pr.json
-          swift package dump-symbol-graph --module-name CongregationKit >> api.pr.json
+          swift package dump-symbol-graph Congregation > api.pr.json
+          swift package dump-symbol-graph SalesforceClient >> api.pr.json
+          swift package dump-symbol-graph CongregationKit >> api.pr.json
       - name: Save PR API
         run: mv api.pr.json ${{ github.workspace }}/api.pr.json
       - name: Fetch main branch and dump API
@@ -26,9 +26,9 @@ jobs:
           git fetch origin main
           git checkout origin/main
           swift build
-          swift package dump-symbol-graph --module-name Congregation > api.main.json
-          swift package dump-symbol-graph --module-name SalesforceClient >> api.main.json
-          swift package dump-symbol-graph --module-name CongregationKit >> api.main.json
+          swift package dump-symbol-graph Congregation > api.main.json
+          swift package dump-symbol-graph SalesforceClient >> api.main.json
+          swift package dump-symbol-graph CongregationKit >> api.main.json
       - name: Save main API
         run: mv api.main.json ${{ github.workspace }}/api.main.json
       - name: Compare APIs and save diff
