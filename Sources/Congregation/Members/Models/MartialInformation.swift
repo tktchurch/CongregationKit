@@ -183,7 +183,7 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
     }
 
     /// Coding keys for mapping API fields to struct properties
-    enum CodingKeys: String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case maritalStatus = "martialStatus"
         case weddingAnniversary = "weddingAnniversaryDdMmYyyy"
         case spouseName
@@ -412,11 +412,7 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
     }
 
     /// Internal storage for the wedding anniversary date
-    ///
-    /// This private property stores the raw anniversary date, which is then
-    /// processed by the `weddingAnniversaryInfo` computed property to provide
-    /// rich anniversary information.
-    private let _weddingAnniversary: Date?
+    fileprivate let _weddingAnniversary: Date?
 }
 
 /// Represents marital status values with user-friendly display names
