@@ -8,7 +8,7 @@ public enum Sector: String, Codable, CaseIterable, Sendable {
     case privateAndBusiness = "Private & Business"
     case govPublicAndBusiness = "Gov/Public & Business"
     case notApplicable = "Not Applicable"
-    
+
     public var displayName: String {
         switch self {
         case .governmentPublic: return "Government/Public"
@@ -19,7 +19,7 @@ public enum Sector: String, Codable, CaseIterable, Sendable {
         case .notApplicable: return "Not Applicable"
         }
     }
-    
+
     public var shortDisplay: String {
         switch self {
         case .governmentPublic: return "Gov/Pub"
@@ -30,7 +30,7 @@ public enum Sector: String, Codable, CaseIterable, Sendable {
         case .notApplicable: return "N/A"
         }
     }
-    
+
     public var internationalFormat: String {
         switch self {
         case .governmentPublic: return "GOV_PUB"
@@ -75,7 +75,8 @@ public struct EmploymentInformation: Codable, Equatable, Sendable, EmploymentInf
     ///   - sector: The employment sector.
     ///   - occupationSubCategoryRaw: The raw value for the occupation subcategory.
     public init(
-        employmentStatus: EmploymentStatus?, nameOfTheOrganization: String?, occupation: Occupation?, sector: Sector?, occupationSubCategoryRaw: String?
+        employmentStatus: EmploymentStatus?, nameOfTheOrganization: String?, occupation: Occupation?, sector: Sector?,
+        occupationSubCategoryRaw: String?
     ) {
         self.employmentStatus = employmentStatus
         self.nameOfTheOrganization = nameOfTheOrganization

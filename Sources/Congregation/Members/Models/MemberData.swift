@@ -500,22 +500,22 @@ public struct BirthDateInfo: Codable, Equatable, Sendable {
         let calendar = Calendar.current
         let now = Date()
         let currentYear = calendar.component(.year, from: now)
-        
+
         // Try this year's birthday
         if let birthdayThisYear = calendar.date(bySetting: .year, value: currentYear, of: date) {
             if birthdayThisYear > now {
                 return calendar.dateComponents([.day], from: now, to: birthdayThisYear).day ?? 0
             }
         }
-        
+
         // Try next year's birthday
         if let birthdayNextYear = calendar.date(bySetting: .year, value: currentYear + 1, of: date) {
             return calendar.dateComponents([.day], from: now, to: birthdayNextYear).day ?? 0
         }
-        
+
         return 0
     }
-    
+
     public init(date: Date) {
         self.date = date
         let calendar = Calendar.current

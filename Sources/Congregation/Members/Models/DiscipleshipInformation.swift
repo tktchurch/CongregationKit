@@ -37,7 +37,7 @@ public enum InterestedToServe: String, Codable, CaseIterable, Sendable {
     case no = "No"
     /// Member can serve but has time limitations.
     case yesButLimitedTime = "Yes but limited time"
-    
+
     /// A user-friendly display name for the service interest level.
     public var displayName: String {
         switch self {
@@ -46,7 +46,7 @@ public enum InterestedToServe: String, Codable, CaseIterable, Sendable {
         case .yesButLimitedTime: return "Yes but limited time"
         }
     }
-    
+
     /// A short display format suitable for UI components.
     public var shortDisplay: String {
         switch self {
@@ -55,7 +55,7 @@ public enum InterestedToServe: String, Codable, CaseIterable, Sendable {
         case .yesButLimitedTime: return "Limited"
         }
     }
-    
+
     /// International standard format for the service interest level.
     public var internationalFormat: String {
         switch self {
@@ -92,7 +92,7 @@ public struct WaterBaptism: Codable, Equatable, Sendable {
     ///
     /// This may be a full date or just a year, depending on the data available.
     public let date: String?
-    
+
     /// Whether the member has received water baptism.
     ///
     /// `true` indicates the member has been baptized, `false` indicates they haven't,
@@ -127,7 +127,7 @@ public struct PrayerCourse: Codable, Equatable, Sendable {
     /// `true` indicates completion, `false` indicates not completed,
     /// and `nil` means the information is not available.
     public let completed: Bool?
-    
+
     /// The date the prayer course was completed, if available.
     ///
     /// This may be a full date or just a year, depending on the data available.
@@ -190,22 +190,22 @@ public struct ServingInformation: Codable, Equatable, Sendable {
     ///
     /// This indicates the member's current level of involvement in ministry activities.
     public let involved: MinistryInvolvement?
-    
+
     /// The member's primary department (picklist).
     ///
     /// This represents the main area of ministry where the member serves or is interested in serving.
     public let primaryDepartment: PrimaryDepartment?
-    
+
     /// The campus where the member serves.
     ///
     /// This indicates which church campus the member is associated with for ministry purposes.
     public let serviceCampus: String?
-    
+
     /// Whether the member is interested to serve.
     ///
     /// This indicates the member's interest level in serving, regardless of current involvement.
     public let interested: InterestedToServe?
-    
+
     /// Coding keys for mapping API fields to struct properties.
     enum CodingKeys: String, CodingKey {
         case involved = "involvedInMinistry"
@@ -250,22 +250,22 @@ public struct ServingInformation: Codable, Equatable, Sendable {
 ///     if discipleship.waterBaptism?.received == true {
 ///         print("Member has been baptized")
 ///     }
-///     
+///
 ///     if discipleship.holySpiritFilling == true {
 ///         print("Member has received Holy Spirit filling")
 ///     }
-///     
+///
 ///     // Check ministry involvement
 ///     if let serving = discipleship.serving {
 ///         print("Ministry involvement: \(serving.involved?.displayName ?? "Not specified")")
 ///         print("Interested to serve: \(serving.interested?.displayName ?? "Not specified")")
 ///     }
-///     
+///
 ///     // Check course completions
 ///     if discipleship.prayerCourse?.completed == true {
 ///         print("Prayer course completed")
 ///     }
-///     
+///
 ///     if discipleship.foundationCourse?.completed == true {
 ///         print("Foundation course completed")
 ///     }
@@ -276,48 +276,48 @@ public struct DiscipleshipInformation: Codable, Equatable, Sendable, Discipleshi
     ///
     /// This may be a full date or just a year, depending on the data available.
     public let bornAgainDate: String?
-    
+
     /// Water baptism information including date and completion status.
     public let waterBaptism: WaterBaptism?
-    
+
     /// Prayer course information including completion status and date.
     public let prayerCourse: PrayerCourse?
-    
+
     /// Foundation course information including completion status.
     public let foundationCourse: FoundationCourse?
-    
+
     /// Whether the member attended a life transformation camp.
     ///
     /// `true` indicates attendance, `false` indicates no attendance,
     /// and `nil` means the information is not available.
     public let attendedLifeTransformationCamp: Bool?
-    
+
     /// Whether the member has received the Holy Spirit filling.
     ///
     /// `true` indicates they have received the Holy Spirit filling,
     /// `false` indicates they haven't, and `nil` means the information is not available.
     public let holySpiritFilling: Bool?
-    
+
     /// The member's missionary type and level of involvement.
     ///
     /// This indicates whether the member is involved in local, national, or international missions.
     public let missionary: MissionaryType?
-    
+
     /// Whether the member is subscribed to the YouTube channel.
     ///
     /// This tracks the member's engagement with church's digital content.
     public let subscribedToYoutubeChannel: SubscriptionStatus?
-    
+
     /// Whether the member is subscribed to WhatsApp communications.
     ///
     /// This tracks the member's engagement with church's messaging platform.
     public let subscribedToWhatsapp: SubscriptionStatus?
-    
+
     /// Comprehensive serving and ministry involvement information.
     ///
     /// This includes current involvement, primary department, service campus, and interest level.
     public let serving: ServingInformation?
-    
+
     /// The member's Bible course participation and progress.
     ///
     /// This tracks which Bible course modules the member has completed or is currently taking.
@@ -376,7 +376,8 @@ public struct DiscipleshipInformation: Codable, Equatable, Sendable, Discipleshi
         let interestedToServe = try container.decodeIfPresent(InterestedToServe.self, forKey: .interestedToServe)
         self.serving =
             (involved != nil || department != nil || campus != nil || interestedToServe != nil)
-            ? ServingInformation(involved: involved, primaryDepartment: department, serviceCampus: campus, interested: interestedToServe) : nil
+            ? ServingInformation(involved: involved, primaryDepartment: department, serviceCampus: campus, interested: interestedToServe)
+            : nil
         self.bibleCourse = try container.decodeIfPresent(BibleCourse.self, forKey: .bibleCourse)
     }
 
@@ -457,7 +458,7 @@ public enum MissionaryType: String, Codable, CaseIterable, Sendable {
     case notApplicable = "Not Applicable"
     /// Unknown or unspecified missionary type.
     case unknown
-    
+
     /// A user-friendly display name for the missionary type.
     public var displayName: String {
         switch self {
@@ -512,7 +513,7 @@ public enum SubscriptionStatus: String, Codable, CaseIterable, Sendable {
     case informed = "Informed"
     /// Subscription status is unknown or unspecified.
     case unknown
-    
+
     /// A user-friendly display name for the subscription status.
     public var displayName: String {
         switch self {
@@ -569,7 +570,7 @@ public enum MinistryInvolvement: String, Codable, CaseIterable, Sendable {
     case no = "No"
     /// Unknown or unspecified ministry involvement.
     case unknown
-    
+
     /// A user-friendly display name for the ministry involvement level.
     public var displayName: String {
         switch self {
@@ -741,7 +742,7 @@ public enum PrimaryDepartment: String, Codable, CaseIterable, Sendable {
     case salvationTeam = "Salvation Team"
     /// Unknown or unspecified department.
     case unknown
-    
+
     /// A user-friendly display name for the department.
     public var displayName: String { self.rawValue }
 }
@@ -802,7 +803,7 @@ public enum BibleCourse: String, Codable, CaseIterable, Sendable {
     case no = "No"
     /// Unknown or unspecified Bible course status.
     case unknown
-    
+
     /// A user-friendly display name for the Bible course.
     public var displayName: String { self.rawValue }
 }

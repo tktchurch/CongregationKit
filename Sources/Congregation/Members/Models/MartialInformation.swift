@@ -120,22 +120,22 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
             let calendar = Calendar.current
             let now = Date()
             let currentYear = calendar.component(.year, from: now)
-            
+
             // Try this year's anniversary
             if let anniversaryThisYear = calendar.date(bySetting: .year, value: currentYear, of: date) {
                 if anniversaryThisYear > now {
                     return calendar.dateComponents([.day], from: now, to: anniversaryThisYear).day ?? 0
                 }
             }
-            
+
             // Try next year's anniversary
             if let anniversaryNextYear = calendar.date(bySetting: .year, value: currentYear + 1, of: date) {
                 return calendar.dateComponents([.day], from: now, to: anniversaryNextYear).day ?? 0
             }
-            
+
             return 0
         }
-        
+
         public init(date: Date) {
             self.date = date
             let calendar = Calendar.current

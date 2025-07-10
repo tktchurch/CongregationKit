@@ -214,8 +214,10 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
 extension Member {
     public init(from decoder: Decoder) throws {
         enum CodingKeys: String, CodingKey {
-            case id, memberId, createdDate, lastModifiedDate, memberName, firstName, middleName, lastName, gender, phone, email, lifeGroupName, area, address, dateOfBirth,
-                title, memberType, bloodGroup, preferredLanguage, attendingCampus, serviceCampus, partOfLifeGroup, status, campus, spm, attendingService
+            case id, memberId, createdDate, lastModifiedDate, memberName, firstName, middleName, lastName, gender, phone, email,
+                lifeGroupName, area, address, dateOfBirth,
+                title, memberType, bloodGroup, preferredLanguage, attendingCampus, serviceCampus, partOfLifeGroup, status, campus, spm,
+                attendingService
             // API alternate keys
             case currentAddress, contactNumberMobile, lifeGroupLeaderName
             case profession, location, whatsappNo, alternateNumber
@@ -338,8 +340,8 @@ extension Member {
         self.init(
             id: id,
             memberId: memberId,
-            createdDate: createdDate, // This will be set by the decoder
-            lastModifiedDate: lastModifiedDate, // This will be set by the decoder
+            createdDate: createdDate,  // This will be set by the decoder
+            lastModifiedDate: lastModifiedDate,  // This will be set by the decoder
             memberName: memberName,
             firstName: firstName,
             middleName: middleName,
