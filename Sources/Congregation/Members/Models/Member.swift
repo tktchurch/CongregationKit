@@ -520,16 +520,7 @@ extension Member {
             sector: sector,
             occupationSubCategoryRaw: occupationSubCategoryRaw
         )
-        let maritalStatus = try container.decodeIfPresent(MaritalStatus.self, forKey: .martialStatus)
-        let weddingAnniversary = try container.decodeIfPresent(String.self, forKey: .weddingAnniversaryDdMmYyyy)
-        let spouseName = try container.decodeIfPresent(String.self, forKey: .spouseName)
-        let numberOfChildren = try container.decodeIfPresent(Int.self, forKey: .numberOfChildren)
-        let maritalInformation = MaritalInformation(
-            maritalStatus: maritalStatus,
-            weddingAnniversary: weddingAnniversary.flatMap { MaritalInformation.dateFormatter.date(from: $0) },
-            spouseName: spouseName,
-            numberOfChildren: numberOfChildren
-        )
+        let maritalInformation = try MaritalInformation(from: decoder)
         let discipleshipInformation = try DiscipleshipInformation(from: decoder)
         self.init(
             id: id,
