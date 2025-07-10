@@ -228,14 +228,6 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encodeIfPresent(maritalStatus, forKey: .maritalStatus)
-        if let date = _weddingAnniversary {
-            let isoFormatter = DateFormatter()
-            isoFormatter.dateFormat = "yyyy-MM-dd"
-            isoFormatter.locale = Locale(identifier: "en_US_POSIX")
-            isoFormatter.timeZone = TimeZone(secondsFromGMT: 0)
-            let dateString = isoFormatter.string(from: date)
-            try container.encode(dateString, forKey: .weddingAnniversary)
-        }
         try container.encodeIfPresent(spouseName, forKey: .spouseName)
         try container.encodeIfPresent(numberOfChildren, forKey: .numberOfChildren)
     }
