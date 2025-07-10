@@ -12,6 +12,8 @@ A high-level Swift SDK for TKT Church and other churches to integrate with Sales
 - **Async/Await:** All API calls are async/await and concurrency-safe (`Sendable`).
 - **Cross-Platform:** Works on macOS and iOS, and is ready for both server-side (Vapor/Hummingbird) and app use.
 - **Production-Ready:** Secure, well-documented, and tested for real-world church data.
+- **Rich Date Handling:** Professional date formatting for birthdays and anniversaries with age calculations.
+- **Comprehensive Discipleship Tracking:** Complete spiritual journey tracking with modular sub-structs.
 
 ## Usage Example
 
@@ -27,41 +29,136 @@ let credentials = SalesforceCredentials(
     password: "your_password"
 )
 let congregation = try await CongregationKit(httpClient: httpClient, credentials: credentials)
-let members = try await congregation.members.fetchAll(expanded: [.contactInformation, .employmentInformation])
-let seekers = try await congregation.seekers.fetchAll(pageNumber: 1, pageSize: 10, campus: .eastCampus, leadStatus: .attempted)
+
+// Fetch members with expanded information
+let members = try await congregation.members.fetchAll(
+    pageNumber: 1, 
+    pageSize: 50, 
+    expanded: [.contactInformation, .employmentInformation, .discipleshipInformation]
+)
+
+// Fetch specific member with type-safe ID
+let member = try await congregation.members.fetch(
+    id: MemberID(validating: "TKT123456"), 
+    expanded: [.maritalInformation]
+)
+
+// Fetch seekers with filtering
+let seekers = try await congregation.seekers.fetchAll(
+    pageNumber: 1, 
+    pageSize: 10, 
+    campus: .eastCampus, 
+    leadStatus: .attempted
+)
 ```
 
 ## Key Features
+
+### Core Functionality
 - Modular, extensible models for member and seeker data
 - Field expansion for efficient member data access
 - Protocol-oriented design for maximum flexibility
 - Full async/await and concurrency safety
 - Designed for TKT Church, but reusable by any church or organization
 
+### Rich Data Models
+- **Member Management:** Complete member profiles with contact, employment, marital, and discipleship information
+- **Seeker Tracking:** Lead management and follow-up tracking
+- **Date Intelligence:** Professional birthday and anniversary formatting with age calculations
+- **Spiritual Journey:** Comprehensive discipleship tracking including baptism, courses, and ministry involvement
+
+### Authentication & Security
+- Secure Salesforce OAuth 2.0 integration
+- Type-safe credential management
+- Error handling with localized descriptions
+- Rate limiting support
+
 ## Topics
+
 ### Creating a Client
 - ``CongregationKit/init(httpClient:credentials:)``
 - ``CongregationKit/init(httpClient:authResponse:)``
-- ``CongregationKit/init(httpClient:membersHandler:)``
 
 ### Available Services
 - ``CongregationKit/members``
 - ``CongregationKit/seekers``
 
-### Data Models
+### Core Data Models
 - ``Member``
 - ``Seeker``
+- ``MemberID``
+
+### Contact & Personal Information
 - ``ContactInformation``
+- ``BirthDateInfo``
+- ``WeddingAnniversaryInfo``
+
+### Employment & Professional
 - ``EmploymentInformation``
+- ``EmploymentStatus``
+- ``Occupation``
+- ``Sector``
+
+### Family & Relationships
 - ``MaritalInformation``
+- ``MaritalStatus``
+
+### Spiritual Development
 - ``DiscipleshipInformation``
+- ``WaterBaptism``
+- ``PrayerCourse``
+- ``FoundationCourse``
+- ``ServingInformation``
+- ``MinistryInvolvement``
+- ``PrimaryDepartment``
+- ``InterestedToServe``
+- ``BibleCourse``
+- ``MissionaryType``
+
+### Communication & Subscriptions
+- ``SubscriptionStatus``
+
+### Demographics & Classification
+- ``Gender``
+- ``MemberTitle``
+- ``MemberType``
+- ``BloodGroup``
+- ``PreferredLanguage``
+- ``MemberStatus``
+- ``AttendingCampus``
+- ``ServiceCampus``
+- ``Campus``
+- ``AttendingService``
 
 ### Protocols
+- ``CongregationKitProtocol``
+- ``MemberDataRepresentable``
 - ``ContactInformationRepresentable``
 - ``EmploymentInformationRepresentable``
 - ``MaritalInformationRepresentable``
 - ``DiscipleshipInformationRepresentable``
 - ``SeekerDataRepresentable``
 
+### Handlers
+- ``MembersHandler``
+- ``SeekersHandler``
+- ``SalesforceMembersHandler``
+- ``SalesforceSeekersHandler``
+
+### Authentication
+- ``SalesforceCredentials``
+- ``SalesforceAuthResponse``
+- ``SalesforceAuthError``
+
+### Errors
+- ``MemberError``
+- ``SeekerError``
+
+### Utilities
+- ``MemberExpand``
+- ``MemberResponse``
+- ``SeekerResponse``
+
 ## Dedication
+
 This SDK is dedicated to The King's Temple Church (TKT Church), Hyderabad, India and is open for use by any church or organization seeking to modernize their congregation management with Salesforce.

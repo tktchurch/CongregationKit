@@ -6,8 +6,12 @@ import Foundation
 /// demographic, contact, and membership information. This protocol is designed for extensibility
 /// and can be used for any model representing member data from Salesforce.
 public protocol MemberDataRepresentable: Codable, Sendable {
-    /// The member's date of birth, if available.
-    var dateOfBirth: Date? { get }
+    /// The member's date of birth with detailed information, if available.
+    var dateOfBirth: BirthDateInfo? { get }
+    /// Date when the member record was created.
+    var createdDate: Date? { get }
+    /// Date when the member record was last modified.
+    var lastModifiedDate: Date? { get }
     /// The member's title (e.g., Mr, Mrs, Dr), if available.
     var title: MemberTitle? { get }
     /// The member's type (e.g., TKT, EFAM), if available.
@@ -18,6 +22,8 @@ public protocol MemberDataRepresentable: Codable, Sendable {
     var preferredLanguages: [PreferredLanguage]? { get }
     /// The campus the member is attending, if available.
     var attendingCampus: AttendingCampus? { get }
+    /// The campus where the member serves, if available.
+    var serviceCampus: ServiceCampus? { get }
     /// Whether the member is part of a life group.
     var partOfLifeGroup: Bool? { get }
     /// The member's status (e.g., Regular, Inactive), if available.
@@ -37,7 +43,7 @@ extension MemberDataRepresentable {
         guard let dob = dateOfBirth else { return nil }
         let calendar = Calendar.current
         let now = Date()
-        let ageComponents = calendar.dateComponents([.year, .month, .day], from: dob, to: now)
+        let ageComponents = calendar.dateComponents([.year, .month, .day], from: dob.date, to: now)
         guard let years = ageComponents.year else { return nil }
         let hasHadBirthdayThisYear: Bool
         if let month = ageComponents.month, let day = ageComponents.day {

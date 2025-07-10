@@ -1,4 +1,4 @@
 version: 1
 builder:
   configs:
-    - documentation_targets: [CongregationKit, SalesforceClient]
+    - documentation_targets: [CongregationKit, Congregation]
