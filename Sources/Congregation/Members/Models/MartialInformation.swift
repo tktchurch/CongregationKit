@@ -189,6 +189,14 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
         case spouseName
         case numberOfChildren
     }
+    
+    /// Coding keys for encoding (different from decoding keys)
+    private enum EncodingKeys: String, CodingKey {
+        case maritalStatus = "martialStatus"
+        case weddingAnniversary = "weddingAnniversary"
+        case spouseName
+        case numberOfChildren
+    }
 
     /// Creates a new MaritalInformation instance from a decoder
     ///
@@ -226,8 +234,17 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
     /// - Parameter encoder: The encoder to write data to
     /// - Throws: `EncodingError` if the data cannot be encoded
     public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
+        var container = encoder.container(keyedBy: EncodingKeys.self)
         try container.encodeIfPresent(maritalStatus, forKey: .maritalStatus)
+        if let date = _weddingAnniversary {
+            let isoFormatter = DateFormatter()
+            isoFormatter.dateFormat = "yyyy-MM-dd"
+            isoFormatter.locale = Locale(identifier: "en_US_POSIX")
+            isoFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+            let dateString = isoFormatter.string(from: date)
+            // Use a custom key for encoding to avoid the API field name
+            try container.encode(dateString, forKey: .weddingAnniversary)
+        }
         try container.encodeIfPresent(spouseName, forKey: .spouseName)
         try container.encodeIfPresent(numberOfChildren, forKey: .numberOfChildren)
     }
