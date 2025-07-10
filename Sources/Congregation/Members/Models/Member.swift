@@ -267,15 +267,20 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
         self.memberId = memberId.flatMap { MemberID(rawValue: $0) }
         self.createdDate = createdDate
         self.lastModifiedDate = lastModifiedDate
-        self.memberName = memberName
         self.firstName = firstName
         self.middleName = middleName
         self.lastName = lastName
-        if let firstName = firstName, let middleName = middleName, let lastName = lastName {
-            self.memberName = firstName + " " + middleName + " " + lastName
-        } else {
-            self.memberName = memberName
-        }
+        
+        // Construct memberName from available components
+        let constructedMemberName: String? = {
+            var components: [String] = []
+            if let firstName = firstName { components.append(firstName) }
+            if let middleName = middleName { components.append(middleName) }
+            if let lastName = lastName { components.append(lastName) }
+            return components.isEmpty ? memberName : components.joined(separator: " ")
+        }()
+        self.memberName = constructedMemberName
+        
         self.gender = gender
         self.phone = phone
         self.lifeGroupName = lifeGroupName
@@ -333,15 +338,20 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
         self.memberId = memberId
         self.createdDate = createdDate
         self.lastModifiedDate = lastModifiedDate
-        self.memberName = memberName
         self.firstName = firstName
         self.middleName = middleName
         self.lastName = lastName
-        if let firstName = firstName, let middleName = middleName, let lastName = lastName {
-            self.memberName = firstName + " " + middleName + " " + lastName
-        } else {
-            self.memberName = memberName
-        }
+        
+        // Construct memberName from available components
+        let constructedMemberName: String? = {
+            var components: [String] = []
+            if let firstName = firstName { components.append(firstName) }
+            if let middleName = middleName { components.append(middleName) }
+            if let lastName = lastName { components.append(lastName) }
+            return components.isEmpty ? memberName : components.joined(separator: " ")
+        }()
+        self.memberName = constructedMemberName
+        
         self.gender = gender
         self.phone = phone
         self.lifeGroupName = lifeGroupName
@@ -367,7 +377,7 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
 extension Member {
     public init(from decoder: Decoder) throws {
         enum CodingKeys: String, CodingKey {
-            case id, memberId, createdDate, lastModifiedDate, memberName, firstName, middleName, lastName, gender, phone, email,
+            case id, memberId, createdDate, lastModifiedDate, gender, phone, email,
                 lifeGroupName, area, address, dateOfBirth,
                 title, memberType, bloodGroup, preferredLanguage, attendingCampus, serviceCampus, partOfLifeGroup, status, campus, spm,
                 attendingService
@@ -377,6 +387,8 @@ extension Member {
             case employmentStatus, nameOfTheOrganization, occupationSubCategory, occupation
             case martialStatus, weddingAnniversaryDdMmYyyy, spouseName, numberOfChildren
             case sector
+            // Name fields from API
+            case name, middleName, lastNameSurname
         }
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let id = try container.decodeIfPresent(String.self, forKey: .id)
@@ -405,10 +417,39 @@ extension Member {
                 return nil
             }
         }()
-        let firstName = try container.decodeIfPresent(String.self, forKey: .firstName)
+        
+        // Parse name fields from API response
+        let fullName = try container.decodeIfPresent(String.self, forKey: .name)
         let middleName = try container.decodeIfPresent(String.self, forKey: .middleName)
-        let lastName = try container.decodeIfPresent(String.self, forKey: .lastName)
-        let memberName = try container.decodeIfPresent(String.self, forKey: .memberName)
+        let lastNameSurname = try container.decodeIfPresent(String.self, forKey: .lastNameSurname)
+        
+        // Parse full name into first and last name components
+        let (firstName, lastName): (String?, String?) = {
+            guard let fullName = fullName else { return (nil, nil) }
+            let nameComponents = fullName.components(separatedBy: " ").filter { !$0.isEmpty }
+            if nameComponents.count >= 2 {
+                let first = nameComponents[0]
+                let last = nameComponents.dropFirst().joined(separator: " ")
+                return (first, last)
+            } else if nameComponents.count == 1 {
+                return (nameComponents[0], nil)
+            } else {
+                return (nil, nil)
+            }
+        }()
+        
+        // Use lastNameSurname if available, otherwise use parsed lastName
+        let finalLastName = lastNameSurname ?? lastName
+        
+        // Construct memberName from available components
+        let memberName: String? = {
+            var components: [String] = []
+            if let firstName = firstName { components.append(firstName) }
+            if let middleName = middleName { components.append(middleName) }
+            if let finalLastName = finalLastName { components.append(finalLastName) }
+            return components.isEmpty ? fullName : components.joined(separator: " ")
+        }()
+        
         let gender = try container.decodeIfPresent(Gender.self, forKey: .gender)
         let phone =
             try container.decodeIfPresent(String.self, forKey: .contactNumberMobile)
@@ -498,7 +539,7 @@ extension Member {
             memberName: memberName,
             firstName: firstName,
             middleName: middleName,
-            lastName: lastName,
+            lastName: finalLastName,
             gender: gender,
             phone: phone,
             email: email,
