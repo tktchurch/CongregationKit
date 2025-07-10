@@ -450,23 +450,193 @@ public enum AttendingService: String, Codable, CaseIterable, Sendable {
     }
 }
 
-/// Struct representing detailed birth date information.
+/// A comprehensive representation of birthday information with professional date formatting and age calculations.
+///
+/// The `BirthDateInfo` struct provides rich birthday data including date components, age calculations,
+/// days until next birthday, and multiple display formats for different use cases in church ministry.
+///
+/// ## Overview
+///
+/// This struct offers comprehensive birthday intelligence:
+/// - **Date Components:** Year, month, day, and day of week
+/// - **Age Calculation:** Current age with birthday consideration
+/// - **Birthday Planning:** Days until next birthday
+/// - **Multiple Formats:** Short, US, and full date formats
+/// - **This Year Check:** Whether birthday falls in current year
+///
+/// ## Key Features
+///
+/// - **Accurate Age Calculation:** Considers whether birthday has occurred this year
+/// - **Professional Date Formatting:** Multiple formats for different contexts
+/// - **Birthday Planning:** Days until next birthday for celebration planning
+/// - **Church-Specific Design:** Built for pastoral care and ministry planning
+/// - **Efficient Computation:** Computed properties for derived information
+///
+/// ## Example Usage
+///
+/// ```swift
+/// // Create birthday information
+/// let birthday = BirthDateInfo(date: Date()) // Example date
+///
+/// // Access age information
+/// print("Current age: \(birthday.age)")
+/// print("Days until next birthday: \(birthday.daysUntilNextBirthday)")
+///
+/// // Use different date formats
+/// print("Short format: \(birthday.shortFormat)") // "15/3"
+/// print("US format: \(birthday.usFormat)") // "3/15"
+/// print("Full format: \(birthday.fullFormat)") // "15/3/1990"
+///
+/// // Check if birthday is this year
+/// if birthday.isThisYear {
+///     print("Birthday is this year!")
+/// }
+///
+/// // Use for ministry planning
+/// if birthday.age >= 18 && birthday.age <= 25 {
+///     print("Young adult ministry opportunity")
+/// } else if birthday.age >= 65 {
+///     print("Senior ministry opportunity")
+/// }
+/// ```
+///
+/// ## Topics
+///
+/// ### Date Information
+/// - ``date`` - The original birth date
+/// - ``year`` - The year component
+/// - ``month`` - The month component
+/// - ``day`` - The day component
+/// - ``dayOfWeek`` - The day of the week (1 = Sunday, 7 = Saturday)
+///
+/// ### Display Formats
+/// - ``shortFormat`` - Birth date in "day/month" format (e.g., "15/3")
+/// - ``usFormat`` - Birth date in "month/day" format (e.g., "3/15")
+/// - ``fullFormat`` - Full birth date in "day/month/year" format (e.g., "15/3/1990")
+///
+/// ### Calculations
+/// - ``age`` - Current age in years
+/// - ``daysUntilNextBirthday`` - Days until next birthday
+/// - ``isThisYear`` - Whether the birthday is this year
+///
+/// ## Church-Specific Features
+///
+/// ### Pastoral Care
+/// - **Age-Appropriate Ministry:** Use age for ministry placement and pastoral care
+/// - **Birthday Recognition:** Days until birthday for celebration planning
+/// - **Demographic Analysis:** Age data for church-wide demographic planning
+/// - **Life Stage Ministry:** Age-based ministry opportunities
+///
+/// ### Ministry Planning
+/// - **Young Adult Ministry:** Ages 18-25 for young adult programs
+/// - **Children's Ministry:** Ages 0-17 for children's programs
+/// - **Senior Ministry:** Ages 65+ for senior adult programs
+/// - **Family Ministry:** Age considerations for family programs
+///
+/// ### Celebration Planning
+/// - **Birthday Celebrations:** Days until birthday for church celebrations
+/// - **Age Milestones:** Recognition of significant age milestones
+/// - **Seasonal Planning:** Birthday timing for seasonal ministry planning
+/// - **Personal Touch:** Age-appropriate pastoral care approaches
+///
+/// ## Integration with Member Model
+///
+/// ```swift
+/// // In Member struct
+/// if let birthday = member.dateOfBirth {
+///     print("Member age: \(birthday.age)")
+///     print("Next birthday: \(birthday.daysUntilNextBirthday) days")
+///
+///     // Use for ministry planning
+///     switch birthday.age {
+///     case 0..<18:
+///         print("Children's ministry")
+///     case 18..<26:
+///         print("Young adult ministry")
+///     case 26..<36:
+///         print("Young professional ministry")
+///     case 36..<46:
+///         print("Middle adult ministry")
+///     case 46..<56:
+///         print("Mature adult ministry")
+///     default:
+///         print("Senior adult ministry")
+///     }
+/// }
+/// ```
+///
+/// ## Age Calculation Logic
+///
+/// The age calculation considers whether the person has had their birthday this year:
+/// - **Birthday This Year:** Age = current year - birth year
+/// - **Birthday Not Yet:** Age = (current year - birth year) - 1
+///
+/// This ensures accurate age calculation regardless of the current date.
+///
+/// ## Performance Considerations
+///
+/// - **Efficient Computation:** All calculations are computed properties
+/// - **Minimal Storage:** Only stores the original date and computed components
+/// - **Concurrency Safe:** All properties are `Sendable` for async operations
+/// - **Memory Efficient:** Lightweight structure with computed derived data
+///
+/// ## Best Practices
+///
+/// ### Ministry Applications
+/// - **Age-Based Ministry:** Use age for appropriate ministry placement
+/// - **Birthday Recognition:** Use days until birthday for celebration planning
+/// - **Demographic Planning:** Use age data for church-wide planning
+/// - **Pastoral Care:** Use age for appropriate pastoral approaches
+///
+/// ### Data Usage
+/// - **Privacy Considerations:** Handle age data with appropriate privacy measures
+/// - **Accuracy:** Ensure birth dates are accurate for proper age calculations
+/// - **Updates:** Keep birth date information current for accurate calculations
+/// - **Display:** Use appropriate format for different contexts
 public struct BirthDateInfo: Codable, Equatable, Sendable {
-    /// The original birth date.
+    /// The original birth date
+    ///
+    /// This is the source date used for all calculations and formatting.
+    /// The date is preserved in its original form for accuracy.
     public let date: Date
-    /// The year component.
+
+    /// The year component of the birth date
+    ///
+    /// Extracted year component for easy access and calculations.
+    /// Used for age calculations and full date formatting.
     public let year: Int
-    /// The month component.
+
+    /// The month component of the birth date
+    ///
+    /// Extracted month component for easy access and calculations.
+    /// Used for date formatting and birthday planning.
     public let month: Int
-    /// The day component.
+
+    /// The day component of the birth date
+    ///
+    /// Extracted day component for easy access and calculations.
+    /// Used for date formatting and birthday planning.
     public let day: Int
-    /// The day of the week (1 = Sunday, 7 = Saturday).
+
+    /// The day of the week (1 = Sunday, 7 = Saturday)
+    ///
+    /// Day of the week when the person was born.
+    /// Useful for historical context and interesting facts.
     public let dayOfWeek: Int
-    /// Birth date in "day/month" format (e.g., "15/3" for March 15th).
+
+    /// Birth date in "day/month" format (e.g., "15/3" for March 15th)
+    ///
+    /// This format is commonly used in many countries and is suitable
+    /// for compact display in user interfaces and international contexts.
     public var shortFormat: String {
         return "\(day)/\(month)"
     }
-    /// Age in years.
+
+    /// Age in years, calculated with birthday consideration
+    ///
+    /// This calculation provides the current age of the person, taking into
+    /// account whether they have had their birthday this year. The calculation
+    /// is accurate regardless of the current date.
     public var age: Int {
         let calendar = Calendar.current
         let now = Date()
@@ -480,22 +650,39 @@ public struct BirthDateInfo: Codable, Equatable, Sendable {
         }
         return years - (hasHadBirthdayThisYear ? 0 : 1)
     }
-    /// Birth date in "month/day" format (e.g., "3/15" for March 15th).
+
+    /// Birth date in "month/day" format (e.g., "3/15" for March 15th)
+    ///
+    /// This format follows the US date convention and is commonly used
+    /// in American contexts and some international applications.
     public var usFormat: String {
         return "\(month)/\(day)"
     }
-    /// Full birth date in "day/month/year" format (e.g., "15/3/1990").
+
+    /// Full birth date in "day/month/year" format (e.g., "15/3/1990")
+    ///
+    /// This format provides complete birth date information including
+    /// the year, useful for historical records and detailed displays.
     public var fullFormat: String {
         return "\(day)/\(month)/\(year)"
     }
-    /// Whether the birthday is this year.
+
+    /// Whether the birthday is this year
+    ///
+    /// This property helps identify if the birthday falls in the current
+    /// year, useful for birthday celebration planning and ministry coordination.
     public var isThisYear: Bool {
         let calendar = Calendar.current
         let now = Date()
         let birthdayThisYear = calendar.date(bySetting: .year, value: calendar.component(.year, from: now), of: date)
         return birthdayThisYear == date
     }
-    /// Days until next birthday.
+
+    /// Days until next birthday
+    ///
+    /// This calculation determines how many days remain until the next
+    /// birthday, useful for birthday celebration planning and reminders.
+    /// The calculation handles both this year's and next year's birthdays.
     public var daysUntilNextBirthday: Int {
         let calendar = Calendar.current
         let now = Date()
@@ -516,6 +703,12 @@ public struct BirthDateInfo: Codable, Equatable, Sendable {
         return 0
     }
 
+    /// Creates a new BirthDateInfo instance
+    ///
+    /// This initializer extracts all date components from the provided date
+    /// and prepares them for efficient access and calculations.
+    ///
+    /// - Parameter date: The birth date to analyze
     public init(date: Date) {
         self.date = date
         let calendar = Calendar.current

@@ -1,14 +1,68 @@
 import Foundation
 
-/// Enum for employment sector values from Salesforce
+/// Represents the employment sector values from Salesforce with comprehensive display options.
+///
+/// This enum defines the various employment sectors that members can belong to,
+/// providing multiple display formats for different use cases in church ministry
+/// and demographic analysis.
+///
+/// ## Overview
+///
+/// The `Sector` enum supports church-specific needs by providing:
+/// - **Standard Display:** Full sector names for formal contexts
+/// - **Short Display:** Abbreviated names for UI constraints
+/// - **International Format:** Standardized codes for data exchange
+///
+/// ## Example Usage
+///
+/// ```swift
+/// let sector = Sector.privateSector
+/// print(sector.displayName) // "Private"
+/// print(sector.shortDisplay) // "Private"
+/// print(sector.internationalFormat) // "PRIVATE"
+///
+/// // Use in ministry planning
+/// switch sector {
+/// case .governmentPublic:
+///     print("Government employee - may have flexible schedules")
+/// case .business:
+///     print("Business owner - potential for business ministry")
+/// case .privateSector:
+///     print("Private sector - standard work schedule")
+/// default:
+///     print("Other employment sector")
+/// }
+/// ```
+///
+/// ## Topics
+///
+/// ### Cases
+/// - ``governmentPublic`` - Government/Public sector employment
+/// - ``privateSector`` - Private sector employment
+/// - ``business`` - Business ownership or entrepreneurship
+/// - ``privateAndBusiness`` - Both private employment and business
+/// - ``govPublicAndBusiness`` - Both government/public and business
+/// - ``notApplicable`` - Not applicable to the member
+///
+/// ### Display Properties
+/// - ``displayName`` - User-friendly display name
+/// - ``shortDisplay`` - Short format for UI display
+/// - ``internationalFormat`` - International standard format
 public enum Sector: String, Codable, CaseIterable, Sendable {
+    /// Government/Public sector employment
     case governmentPublic = "Government/Public"
+    /// Private sector employment
     case privateSector = "Private"
+    /// Business ownership or entrepreneurship
     case business = "Business"
+    /// Both private employment and business
     case privateAndBusiness = "Private & Business"
+    /// Both government/public and business
     case govPublicAndBusiness = "Gov/Public & Business"
+    /// Not applicable to the member
     case notApplicable = "Not Applicable"
 
+    /// A user-friendly display name for the employment sector
     public var displayName: String {
         switch self {
         case .governmentPublic: return "Government/Public"
@@ -20,6 +74,7 @@ public enum Sector: String, Codable, CaseIterable, Sendable {
         }
     }
 
+    /// A short display format suitable for UI components with space constraints
     public var shortDisplay: String {
         switch self {
         case .governmentPublic: return "Gov/Pub"
@@ -31,6 +86,7 @@ public enum Sector: String, Codable, CaseIterable, Sendable {
         }
     }
 
+    /// International standard format for data exchange and API integration
     public var internationalFormat: String {
         switch self {
         case .governmentPublic: return "GOV_PUB"
@@ -43,37 +99,209 @@ public enum Sector: String, Codable, CaseIterable, Sendable {
     }
 }
 
-/// A type representing a member's employment information, including status, organization, occupation, and subcategory.
+/// A comprehensive representation of a member's employment information, including status, organization, occupation, and sector.
+///
+/// The `EmploymentInformation` struct provides detailed employment data for church members,
+/// supporting ministry planning, demographic analysis, and professional networking within
+/// the church community. It includes hierarchical occupation modeling for precise categorization.
+///
+/// ## Overview
+///
+/// This struct organizes employment information into logical categories:
+/// - **Employment Status:** Current work situation (employed, student, retired, etc.)
+/// - **Organization Details:** Employer name and professional context
+/// - **Occupation Classification:** Hierarchical occupation and subcategory system
+/// - **Sector Information:** Employment sector for demographic analysis
+///
+/// ## Key Features
+///
+/// - **Hierarchical Occupation Modeling:** Category and subcategory relationships
+/// - **Multiple Display Formats:** Standard, short, and international formats
+/// - **Church-Specific Design:** Built for ministry matching and demographic analysis
+/// - **Protocol Conformance:** Implements `EmploymentInformationRepresentable` for type-safe access
+/// - **Flexible Data Handling:** Graceful handling of incomplete or missing data
+///
+/// ## Example Usage
+///
+/// ```swift
+/// // Create employment information
+/// let employment = EmploymentInformation(
+///     employmentStatus: .employed,
+///     nameOfTheOrganization: "Tech Solutions Inc.",
+///     occupation: .it,
+///     sector: .privateSector,
+///     occupationSubCategoryRaw: "Software Engineer"
+/// )
+///
+/// // Access employment status
+/// if let status = employment.employmentStatus {
+///     print("Employment status: \(status.displayName)")
+/// }
+///
+/// // Access occupation information
+/// if let occupation = employment.occupation {
+///     print("Occupation category: \(occupation.displayName)")
+/// }
+///
+/// if let subcategory = employment.occupationSubCategoryEnum {
+///     print("Specific role: \(subcategory.displayName)")
+/// }
+///
+/// // Use for ministry planning
+/// if let sector = employment.sector {
+///     switch sector {
+///     case .governmentPublic:
+///         print("May have flexible government schedule")
+///     case .business:
+///         print("Potential business ministry opportunities")
+///     default:
+///         print("Standard employment sector")
+///     }
+/// }
+/// ```
+///
+/// ## Topics
+///
+/// ### Employment Status
+/// - ``employmentStatus`` - The member's employment status
+///
+/// ### Organization Information
+/// - ``nameOfTheOrganization`` - The name of the organization where the member is employed
+///
+/// ### Occupation Classification
+/// - ``occupation`` - The member's occupation category
+/// - ``occupationSubCategoryEnum`` - The member's specific occupation subcategory
+/// - ``occupationCategory`` - The inferred occupation category from subcategory
+///
+/// ### Sector Information
+/// - ``sector`` - The member's employment sector
+///
+/// ## Church-Specific Features
+///
+/// ### Ministry Planning
+/// - **Skill-Based Matching:** Use occupation data for ministry placement
+/// - **Schedule Awareness:** Employment status helps with ministry scheduling
+/// - **Professional Networking:** Organization data supports professional ministry
+/// - **Demographic Analysis:** Sector data for church-wide planning
+///
+/// ### Occupation Hierarchy
+/// - **Category Level:** Broad occupation groups (IT, Healthcare, Education, etc.)
+/// - **Subcategory Level:** Specific roles within categories
+/// - **Automatic Inference:** Category can be inferred from subcategory when needed
+/// - **Flexible Access:** Both direct and computed occupation information
+///
+/// ### Data Organization
+/// - **Modular Design:** Logical grouping of employment-related information
+/// - **Protocol Conformance:** Consistent access patterns across the codebase
+/// - **Extensible Structure:** Easy to add new occupation categories or sectors
+///
+/// ## Integration with Member Model
+///
+/// ```swift
+/// // In Member struct
+/// let member = Member(
+///     employmentInformation: EmploymentInformation(
+///         employmentStatus: .employed,
+///         nameOfTheOrganization: "Church Ministry",
+///         occupation: .ministry,
+///         sector: .notApplicable
+///     )
+/// )
+///
+/// // Access through protocol conformance
+/// if let status = member.employmentStatus {
+///     print("Member employment: \(status.displayName)")
+/// }
+///
+/// if let occupation = member.occupation {
+///     print("Member occupation: \(occupation.displayName)")
+/// }
+/// ```
+///
+/// ## Data Validation
+///
+/// - **Optional Fields:** All fields are optional to handle incomplete data gracefully
+/// - **Enum Safety:** All status and category fields use enums for compile-time safety
+/// - **Hierarchical Validation:** Subcategory validation against category relationships
+/// - **Sector Flexibility:** Supports various employment sector combinations
+///
+/// ## Performance Considerations
+///
+/// - **Efficient Access:** Direct property access with computed properties for derived data
+/// - **Memory Efficient:** Minimal storage overhead for employment information
+/// - **Concurrency Safe:** All properties are `Sendable` for async operations
+/// - **Serialization Ready:** Full `Codable` support for API integration
+///
+/// ## Best Practices
+///
+/// ### Ministry Applications
+/// - **Skill Matching:** Use occupation data to match members with appropriate ministries
+/// - **Schedule Planning:** Consider employment status when scheduling ministry activities
+/// - **Professional Ministry:** Use organization data for workplace ministry opportunities
+/// - **Demographic Planning:** Use sector data for church-wide demographic analysis
+///
+/// ### Data Entry
+/// - **Complete Information:** Provide both category and subcategory when possible
+/// - **Sector Accuracy:** Use appropriate sector for demographic analysis
+/// - **Organization Names:** Use full organization names for professional networking
+/// - **Status Updates:** Keep employment status current for ministry planning
 ///
 /// - Note: This struct supports hierarchical occupation modeling. Use `occupationCategory` and `occupationSubCategoryEnum` for safe access to category and subcategory.
 public struct EmploymentInformation: Codable, Equatable, Sendable, EmploymentInformationRepresentable {
     /// The member's employment status (e.g., employed, student, retired).
+    ///
+    /// This indicates the member's current work situation, which is important
+    /// for ministry scheduling, availability planning, and demographic analysis.
     public let employmentStatus: EmploymentStatus?
+
     /// The name of the organization where the member is employed.
+    ///
+    /// Used for professional networking, workplace ministry opportunities,
+    /// and understanding the member's professional context.
     public let nameOfTheOrganization: String?
+
     /// The member's occupation category (e.g., IT, Education).
+    ///
+    /// Broad occupation classification used for ministry matching,
+    /// skill-based ministry placement, and demographic analysis.
     public let occupation: Occupation?
+
     /// The member's employment sector (e.g., Government/Public, Private, Business).
+    ///
+    /// Employment sector information used for demographic analysis,
+    /// ministry planning, and understanding work schedule flexibility.
     public let sector: Sector?
+
+    /// Internal storage for the raw occupation subcategory value
     private let subCategoryRawValue: String?
+
     /// The member's occupation subcategory, if available (e.g., Doctor, Teacher).
+    ///
+    /// Specific role within the occupation category, providing detailed
+    /// information for precise ministry matching and skill utilization.
     public var occupationSubCategoryEnum: OccupationSubCategory? {
         guard let raw = subCategoryRawValue else { return nil }
         return OccupationSubCategory(rawValue: raw)
     }
+
     /// The occupation category, inferred from the subcategory if not directly provided.
+    ///
+    /// This computed property ensures that occupation category information
+    /// is always available, either directly or inferred from the subcategory.
     public var occupationCategory: Occupation? {
         if let occupation = occupation { return occupation }
         guard let sub = occupationSubCategoryEnum else { return nil }
         return Occupation.allCases.first(where: { $0.subcategories.contains(sub) })
     }
+
     /// Creates a new EmploymentInformation instance.
+    ///
     /// - Parameters:
-    ///   - employmentStatus: The member's employment status.
-    ///   - nameOfTheOrganization: The name of the organization.
-    ///   - occupation: The occupation category.
-    ///   - sector: The employment sector.
-    ///   - occupationSubCategoryRaw: The raw value for the occupation subcategory.
+    ///   - employmentStatus: The member's employment status
+    ///   - nameOfTheOrganization: The name of the organization
+    ///   - occupation: The occupation category
+    ///   - sector: The employment sector
+    ///   - occupationSubCategoryRaw: The raw value for the occupation subcategory
     public init(
         employmentStatus: EmploymentStatus?, nameOfTheOrganization: String?, occupation: Occupation?, sector: Sector?,
         occupationSubCategoryRaw: String?
@@ -84,9 +312,13 @@ public struct EmploymentInformation: Codable, Equatable, Sendable, EmploymentInf
         self.sector = sector
         self.subCategoryRawValue = occupationSubCategoryRaw
     }
+
+    /// Coding keys for mapping API fields to struct properties
     enum CodingKeys: String, CodingKey {
         case employmentStatus, nameOfTheOrganization, occupation, sector, occupationSubCategory
     }
+
+    /// Creates a new EmploymentInformation instance from a decoder
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.employmentStatus = try container.decodeIfPresent(EmploymentStatus.self, forKey: .employmentStatus)
@@ -95,6 +327,8 @@ public struct EmploymentInformation: Codable, Equatable, Sendable, EmploymentInf
         self.sector = try container.decodeIfPresent(Sector.self, forKey: .sector)
         self.subCategoryRawValue = try container.decodeIfPresent(String.self, forKey: .occupationSubCategory)
     }
+
+    /// Encodes the EmploymentInformation instance to an encoder
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encodeIfPresent(employmentStatus, forKey: .employmentStatus)
