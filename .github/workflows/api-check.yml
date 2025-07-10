@@ -38,9 +38,6 @@ jobs:
             echo "::error ::Symbol graph output directory not found in .build"
             exit 1
           fi
-          # Debug: List files in symbolgraph directory
-          echo "Symbol graph files in $symbolgraph_dir:"
-          ls -l "$symbolgraph_dir"
           # Move generated symbol graph files to symbol-graphs/pr
           for module in Congregation SalesforceClient CongregationKit; do
             src_file="${symbolgraph_dir}/${module}.symbols.json"
@@ -69,9 +66,6 @@ jobs:
             echo "::error ::Symbol graph output directory not found in .build"
             exit 1
           fi
-          # Debug: List files in symbolgraph directory
-          echo "Symbol graph files in $symbolgraph_dir:"
-          ls -l "$symbolgraph_dir"
           # Move generated symbol graph files to symbol-graphs/main
           for module in Congregation SalesforceClient CongregationKit; do
             src_file="${symbolgraph_dir}/${module}.symbols.json"
@@ -97,29 +91,11 @@ jobs:
             main_json="${{ github.workspace }}/symbol-graphs/main/${module}.symbols.json"
             pr_json="${{ github.workspace }}/symbol-graphs/pr/${module}.symbols.json"
             diff_file="${{ github.workspace }}/symbol-graphs/diff_${module}.txt"
-            # Validate JSON files
-            if [ ! -f "$main_json" ] || ! jq -e . "$main_json" >/dev/null 2>&1; then
-              echo "::error ::Invalid or missing JSON file: $main_json"
-              exit 1
-            fi
-            if [ ! -f "$pr_json" ] || ! jq -e . "$pr_json" >/dev/null 2>&1; then
-              echo "::error ::Invalid or missing JSON file: $pr_json"
-              exit 1
-            fi
             # Generate raw diff for debugging
             diff "$main_json" "$pr_json" > "$diff_file" 2>/dev/null || true
-            # Extract symbols for comparison, using temp files to avoid pipe issues
-            jq -c '.symbols[] | {kind: .kind.identifier, identifier: .identifier.precise, type: .declarations.declarationFragments[0].spelling?}' "$main_json" > main_symbols.tmp
-            jq -c '.symbols[] | {kind: .kind.identifier, identifier: .identifier.precise, type: .declarations.declarationFragments[0].spelling?}' "$pr_json" > pr_symbols.tmp
-            # Debug: Check if symbols were extracted
-            if [ ! -s main_symbols.tmp ]; then
-              echo "::error ::No symbols extracted from $main_json"
-              exit 1
-            fi
-            if [ ! -s pr_symbols.tmp ]; then
-              echo "::error ::No symbols extracted from $pr_json"
-              exit 1
-            fi
+            # Extract symbols for comparison
+            main_symbols=$(jq -c '.symbols[] | {kind: .kind.identifier, identifier: .identifier.precise, type: .declarations.declarationFragments[0].spelling?}' "$main_json")
+            pr_symbols=$(jq -c '.symbols[] | {kind: .kind.identifier, identifier: .identifier.precise, type: .declarations.declarationFragments[0].spelling?}' "$pr_json")
             # Initialize module-specific table
             module_summary=""
             module_summary+="\n### $module API Changes\n"
@@ -127,44 +103,42 @@ jobs:
             module_summary+="|-------------|-------------|------------|---------|\n"
             # Check for added symbols
             while IFS= read -r pr_symbol; do
-              pr_id=$(echo "$pr_symbol" | jq -r '.identifier' 2>/dev/null || continue)
-              pr_kind=$(echo "$pr_symbol" | jq -r '.kind' 2>/dev/null || continue)
-              pr_type=$(echo "$pr_symbol" | jq -r '.type // "unknown"' 2>/dev/null || continue)
-              if ! grep -q "$pr_id" main_symbols.tmp; then
+              pr_id=$(echo "$pr_symbol" | jq -r '.identifier')
+              pr_kind=$(echo "$pr_symbol" | jq -r '.kind')
+              pr_type=$(echo "$pr_symbol" | jq -r '.type // "unknown"')
+              if ! echo "$main_symbols" | grep -q "$pr_id"; then
                 module_summary+="| Added | $pr_kind | \`$pr_id\` | Type: $pr_type |\n"
                 has_diff=true
               fi
-            done < pr_symbols.tmp
+            done <<< "$pr_symbols"
             # Check for removed symbols
             while IFS= read -r main_symbol; do
-              main_id=$(echo "$main_symbol" | jq -r '.identifier' 2>/dev/null || continue)
-              main_kind=$(echo "$main_symbol" | jq -r '.kind' 2>/dev/null || continue)
-              main_type=$(echo "$main_symbol" | jq -r '.type // "unknown"' 2>/dev/null || continue)
-              if ! grep -q "$main_id" pr_symbols.tmp; then
+              main_id=$(echo "$main_symbol" | jq -r '.identifier')
+              main_kind=$(echo "$main_symbol" | jq -r '.kind')
+              main_type=$(echo "$main_symbol" | jq -r '.type // "unknown"')
+              if ! echo "$pr_symbols" | grep -q "$main_id"; then
                 module_summary+="| Removed | $main_kind | \`$main_id\` | Type: $main_type |\n"
                 has_diff=true
               fi
-            done < main_symbols.tmp
+            done <<< "$main_symbols"
             # Check for modified symbols (type changes)
             while IFS= read -r pr_symbol; do
-              pr_id=$(echo "$pr_symbol" | jq -r '.identifier' 2>/dev/null || continue)
-              pr_kind=$(echo "$pr_symbol" | jq -r '.kind' 2>/dev/null || continue)
-              pr_type=$(echo "$pr_symbol" | jq -r '.type // "unknown"' 2>/dev/null || continue)
-              main_symbol=$(grep "$pr_id" main_symbols.tmp || true)
+              pr_id=$(echo "$pr_symbol" | jq -r '.identifier')
+              pr_kind=$(echo "$pr_symbol" | jq -r '.kind')
+              pr_type=$(echo "$pr_symbol" | jq -r '.type // "unknown"')
+              main_symbol=$(echo "$main_symbols" | grep "$pr_id" || true)
               if [ -n "$main_symbol" ]; then
-                main_type=$(echo "$main_symbol" | jq -r '.type // "unknown"' 2>/dev/null || continue)
+                main_type=$(echo "$main_symbol" | jq -r '.type // "unknown"')
                 if [ "$pr_type" != "$main_type" ]; then
                   module_summary+="| Modified | $pr_kind | \`$pr_id\` | Type changed from $main_type to $pr_type |\n"
                   has_diff=true
                 fi
               fi
-            done < pr_symbols.tmp
+            done <<< "$pr_symbols"
             # Append to diff content if changes exist
-            if [[ "$module_summary" != *"Change Type | Symbol Kind | Identifier"* ]]; then
+            if [[ "$module_summary" != *"Change Type | Symbol Kind | Identifier Graph"* ]]; then
               diff_content+="$module_summary\n"
             fi
-            # Clean up temp files
-            rm -f main_symbols.tmp pr_symbols.tmp
           done
           # Add note if no changes detected
           if [ "$has_diff" = "false" ]; then
@@ -184,21 +158,6 @@ jobs:
           path: ${{ github.workspace }}/symbol-graphs/diff_*.txt
           retention-days: 7
 
-      # Process diff output for PR comment
-      - name: Process diff output
-        id: process_diff
-        run: |
-          set -e
-          if [ -f "${{ github.workspace }}/diff_output.txt" ]; then
-            diff_comment=$(cat ${{ github.workspace }}/diff_output.txt | grep -A 1000 'diff_content' | sed '1d; /^EOF$/d')
-            echo "diff_comment<<EOF" >> $GITHUB_OUTPUT
-            echo "$diff_comment" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          else
-            echo "::error ::diff_output.txt not found"
-            exit 1
-          fi
-
       # Post PR comment with API changes
       - name: Comment on PR with API changes
         if: always()
@@ -209,7 +168,7 @@ jobs:
           body: |
             ## 🛑 Public API Change Detection Results
             
-            ${{ steps.process_diff.outputs.diff_comment }}
+            $(cat ${{ github.workspace }}/diff_output.txt | grep -A 1000 'diff_content' | sed '1d; /^EOF$/d')
             
             Raw JSON diffs are available as artifacts for detailed inspection (if changes were detected).
             Please review any API changes to ensure they are intentional. Public API changes may require versioning or additional documentation.
