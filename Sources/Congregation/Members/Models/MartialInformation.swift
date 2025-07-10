@@ -404,7 +404,7 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
     }
 
     /// Internal storage for the wedding anniversary date
-    fileprivate let _weddingAnniversary: Date?
+    public let _weddingAnniversary: Date?
 }
 
 /// Represents marital status values with user-friendly display names
