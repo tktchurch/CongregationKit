@@ -30,7 +30,7 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case maritalStatus
+        case maritalStatus = "martialStatus"
         case weddingAnniversary = "weddingAnniversaryDdMmYyyy"
         case spouseName
         case numberOfChildren
@@ -39,9 +39,17 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.maritalStatus = try container.decodeIfPresent(MaritalStatus.self, forKey: .maritalStatus)
-        // Parse date from ddMMyyyy string if present
+        // Parse date from yyyy-MM-dd or ddMMyyyy string if present
         if let dateString = try container.decodeIfPresent(String.self, forKey: .weddingAnniversary) {
-            self._weddingAnniversary = MaritalInformation.dateFormatter.date(from: dateString)
+            let isoFormatter = DateFormatter()
+            isoFormatter.dateFormat = "yyyy-MM-dd"
+            isoFormatter.locale = Locale(identifier: "en_US_POSIX")
+            isoFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+            if let date = isoFormatter.date(from: dateString) {
+                self._weddingAnniversary = date
+            } else {
+                self._weddingAnniversary = MaritalInformation.dateFormatter.date(from: dateString)
+            }
         } else {
             self._weddingAnniversary = nil
         }
@@ -81,6 +89,53 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
         public let day: Int
         /// The day of the week (1 = Sunday, 7 = Saturday).
         public let dayOfWeek: Int
+        /// Anniversary date in "day/month" format (e.g., "9/10" for October 9th).
+        public var shortFormat: String {
+            return "\(day)/\(month)"
+        }
+        /// Number of years of marriage until now.
+        public var yearsOfMarriage: Int {
+            let calendar = Calendar.current
+            let now = Date()
+            let components = calendar.dateComponents([.year], from: date, to: now)
+            return components.year ?? 0
+        }
+        /// Anniversary date in "month/day" format (e.g., "10/9" for October 9th).
+        public var usFormat: String {
+            return "\(month)/\(day)"
+        }
+        /// Full anniversary date in "day/month/year" format (e.g., "9/10/2013").
+        public var fullFormat: String {
+            return "\(day)/\(month)/\(year)"
+        }
+        /// Whether the anniversary is this year.
+        public var isThisYear: Bool {
+            let calendar = Calendar.current
+            let now = Date()
+            let anniversaryThisYear = calendar.date(bySetting: .year, value: calendar.component(.year, from: now), of: date)
+            return anniversaryThisYear == date
+        }
+        /// Days until next anniversary.
+        public var daysUntilNextAnniversary: Int {
+            let calendar = Calendar.current
+            let now = Date()
+            let currentYear = calendar.component(.year, from: now)
+            
+            // Try this year's anniversary
+            if let anniversaryThisYear = calendar.date(bySetting: .year, value: currentYear, of: date) {
+                if anniversaryThisYear > now {
+                    return calendar.dateComponents([.day], from: now, to: anniversaryThisYear).day ?? 0
+                }
+            }
+            
+            // Try next year's anniversary
+            if let anniversaryNextYear = calendar.date(bySetting: .year, value: currentYear + 1, of: date) {
+                return calendar.dateComponents([.day], from: now, to: anniversaryNextYear).day ?? 0
+            }
+            
+            return 0
+        }
+        
         public init(date: Date) {
             self.date = date
             let calendar = Calendar.current

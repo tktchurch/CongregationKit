@@ -7,6 +7,10 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
     public let id: String?
     /// Member ID from Salesforce (type-safe)
     public let memberId: MemberID?
+    /// Date when the member record was created
+    public let createdDate: Date?
+    /// Date when the member record was last modified
+    public let lastModifiedDate: Date?
 
     // MARK: - Name Fields
     /// Full name of the member
@@ -30,8 +34,13 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
     public let lifeGroupName: String?
 
     // MARK: - Demographic Info
-    /// The member's date of birth, if available.
-    public let dateOfBirth: Date?
+    /// The member's date of birth with detailed information, if available.
+    public var dateOfBirth: BirthDateInfo? {
+        guard let date = _dateOfBirth else { return nil }
+        return BirthDateInfo(date: date)
+    }
+    /// Internal storage for the date of birth
+    private let _dateOfBirth: Date?
     /// The member's title (e.g., Mr, Mrs, Dr), if available.
     public let title: MemberTitle?
     /// The member's type (e.g., TKT, EFAM), if available.
@@ -44,6 +53,8 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
     // MARK: - Membership Info
     /// The campus the member is attending, if available.
     public let attendingCampus: AttendingCampus?
+    /// The campus where the member serves, if available.
+    public let serviceCampus: ServiceCampus?
     /// Whether the member is part of a life group.
     public let partOfLifeGroup: Bool?
     /// The member's status (e.g., Regular, Inactive), if available.
@@ -70,6 +81,8 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
     public init(
         id: String? = nil,
         memberId: String? = nil,
+        createdDate: Date? = nil,
+        lastModifiedDate: Date? = nil,
         memberName: String? = nil,
         firstName: String? = nil,
         middleName: String? = nil,
@@ -86,6 +99,7 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
         bloodGroup: BloodGroup? = nil,
         preferredLanguages: [PreferredLanguage]? = nil,
         attendingCampus: AttendingCampus? = nil,
+        serviceCampus: ServiceCampus? = nil,
         partOfLifeGroup: Bool? = nil,
         status: MemberStatus? = nil,
         campus: Campus? = nil,
@@ -98,6 +112,8 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
     ) {
         self.id = id
         self.memberId = memberId.flatMap { MemberID(rawValue: $0) }
+        self.createdDate = createdDate
+        self.lastModifiedDate = lastModifiedDate
         self.memberName = memberName
         self.firstName = firstName
         self.middleName = middleName
@@ -110,12 +126,13 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
         self.gender = gender
         self.phone = phone
         self.lifeGroupName = lifeGroupName
-        self.dateOfBirth = dateOfBirth
+        self._dateOfBirth = dateOfBirth
         self.title = title
         self.memberType = memberType
         self.bloodGroup = bloodGroup
         self.preferredLanguages = preferredLanguages
         self.attendingCampus = attendingCampus
+        self.serviceCampus = serviceCampus
         self.partOfLifeGroup = partOfLifeGroup
         self.status = status
         self.campus = campus
@@ -130,6 +147,8 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
     public init(
         id: String? = nil,
         memberId: MemberID? = nil,
+        createdDate: Date? = nil,
+        lastModifiedDate: Date? = nil,
         memberName: String? = nil,
         firstName: String? = nil,
         middleName: String? = nil,
@@ -146,6 +165,7 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
         bloodGroup: BloodGroup? = nil,
         preferredLanguages: [PreferredLanguage]? = nil,
         attendingCampus: AttendingCampus? = nil,
+        serviceCampus: ServiceCampus? = nil,
         partOfLifeGroup: Bool? = nil,
         status: MemberStatus? = nil,
         campus: Campus? = nil,
@@ -158,6 +178,8 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
     ) {
         self.id = id
         self.memberId = memberId
+        self.createdDate = createdDate
+        self.lastModifiedDate = lastModifiedDate
         self.memberName = memberName
         self.firstName = firstName
         self.middleName = middleName
@@ -170,12 +192,13 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
         self.gender = gender
         self.phone = phone
         self.lifeGroupName = lifeGroupName
-        self.dateOfBirth = dateOfBirth
+        self._dateOfBirth = dateOfBirth
         self.title = title
         self.memberType = memberType
         self.bloodGroup = bloodGroup
         self.preferredLanguages = preferredLanguages
         self.attendingCampus = attendingCampus
+        self.serviceCampus = serviceCampus
         self.partOfLifeGroup = partOfLifeGroup
         self.status = status
         self.campus = campus
@@ -191,19 +214,38 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
 extension Member {
     public init(from decoder: Decoder) throws {
         enum CodingKeys: String, CodingKey {
-            case id, memberId, memberName, firstName, middleName, lastName, gender, phone, email, lifeGroupName, area, address, dateOfBirth,
-                title, memberType, bloodGroup, preferredLanguages, attendingCampus, partOfLifeGroup, status, campus, spm, attendingService
+            case id, memberId, createdDate, lastModifiedDate, memberName, firstName, middleName, lastName, gender, phone, email, lifeGroupName, area, address, dateOfBirth,
+                title, memberType, bloodGroup, preferredLanguage, attendingCampus, serviceCampus, partOfLifeGroup, status, campus, spm, attendingService
             // API alternate keys
             case currentAddress, contactNumberMobile, lifeGroupLeaderName
-            case profession, location, whatsappNumber, alternateNumber
+            case profession, location, whatsappNo, alternateNumber
             case employmentStatus, nameOfTheOrganization, occupationSubCategory, occupation
-            case maritalStatus, weddingAnniversaryDdMmYyyy, spouseName, numberOfChildren
+            case martialStatus, weddingAnniversaryDdMmYyyy, spouseName, numberOfChildren
+            case sector
         }
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let id = try container.decodeIfPresent(String.self, forKey: .id)
         let memberId: MemberID? = {
             if let memberIdString = try? container.decodeIfPresent(String.self, forKey: .memberId) {
                 return MemberID(rawValue: memberIdString)
+            } else {
+                return nil
+            }
+        }()
+        let createdDate: Date? = {
+            if let dateString = try? container.decodeIfPresent(String.self, forKey: .createdDate) {
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                return formatter.date(from: dateString)
+            } else {
+                return nil
+            }
+        }()
+        let lastModifiedDate: Date? = {
+            if let dateString = try? container.decodeIfPresent(String.self, forKey: .lastModifiedDate) {
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                return formatter.date(from: dateString)
             } else {
                 return nil
             }
@@ -237,10 +279,10 @@ extension Member {
         let memberType = try container.decodeIfPresent(MemberType.self, forKey: .memberType)
         let bloodGroup = try container.decodeIfPresent(BloodGroup.self, forKey: .bloodGroup)
         let preferredLanguages: [PreferredLanguage]? = {
-            if let langs = try? container.decodeIfPresent([PreferredLanguage].self, forKey: .preferredLanguages) {
+            if let langs = try? container.decodeIfPresent([PreferredLanguage].self, forKey: .preferredLanguage) {
                 return langs
             }
-            if let langsString = try? container.decodeIfPresent(String.self, forKey: .preferredLanguages) {
+            if let langsString = try? container.decodeIfPresent(String.self, forKey: .preferredLanguage) {
                 let parts = langsString.components(separatedBy: CharacterSet(charactersIn: ";&")).map {
                     $0.trimmingCharacters(in: .whitespacesAndNewlines)
                 }
@@ -250,12 +292,13 @@ extension Member {
             return nil
         }()
         let attendingCampus = try container.decodeIfPresent(AttendingCampus.self, forKey: .attendingCampus)
+        let serviceCampus = try container.decodeIfPresent(ServiceCampus.self, forKey: .serviceCampus)
         let partOfLifeGroup = try container.decodeIfPresent(Bool.self, forKey: .partOfLifeGroup)
         let status = try container.decodeIfPresent(MemberStatus.self, forKey: .status)
         let campus = try container.decodeIfPresent(Campus.self, forKey: .campus)
         let spm = try container.decodeIfPresent(Bool.self, forKey: .spm)
         let attendingService = try container.decodeIfPresent(AttendingService.self, forKey: .attendingService)
-        let whatsappNumber = try container.decodeIfPresent(String.self, forKey: .whatsappNumber)
+        let whatsappNumber = try container.decodeIfPresent(String.self, forKey: .whatsappNo)
         let alternateNumber = try container.decodeIfPresent(String.self, forKey: .alternateNumber)
         let profession = try container.decodeIfPresent(String.self, forKey: .profession)
         let location = try container.decodeIfPresent(String.self, forKey: .location)
@@ -272,14 +315,16 @@ extension Member {
         let employmentStatus = try container.decodeIfPresent(EmploymentStatus.self, forKey: .employmentStatus)
         let nameOfTheOrganization = try container.decodeIfPresent(String.self, forKey: .nameOfTheOrganization)
         let occupation = try container.decodeIfPresent(Occupation.self, forKey: .occupation)
+        let sector = try container.decodeIfPresent(Sector.self, forKey: .sector)
         let occupationSubCategoryRaw = try container.decodeIfPresent(String.self, forKey: .occupationSubCategory)
         let employmentInformation = EmploymentInformation(
             employmentStatus: employmentStatus,
             nameOfTheOrganization: nameOfTheOrganization,
             occupation: occupation,
+            sector: sector,
             occupationSubCategoryRaw: occupationSubCategoryRaw
         )
-        let maritalStatus = try container.decodeIfPresent(MaritalStatus.self, forKey: .maritalStatus)
+        let maritalStatus = try container.decodeIfPresent(MaritalStatus.self, forKey: .martialStatus)
         let weddingAnniversary = try container.decodeIfPresent(String.self, forKey: .weddingAnniversaryDdMmYyyy)
         let spouseName = try container.decodeIfPresent(String.self, forKey: .spouseName)
         let numberOfChildren = try container.decodeIfPresent(Int.self, forKey: .numberOfChildren)
@@ -293,6 +338,8 @@ extension Member {
         self.init(
             id: id,
             memberId: memberId,
+            createdDate: createdDate, // This will be set by the decoder
+            lastModifiedDate: lastModifiedDate, // This will be set by the decoder
             memberName: memberName,
             firstName: firstName,
             middleName: middleName,
@@ -309,6 +356,7 @@ extension Member {
             bloodGroup: bloodGroup,
             preferredLanguages: preferredLanguages,
             attendingCampus: attendingCampus,
+            serviceCampus: serviceCampus,
             partOfLifeGroup: partOfLifeGroup,
             status: status,
             campus: campus,
@@ -387,6 +435,7 @@ extension Member: EmploymentInformationRepresentable {
     public var occupation: Occupation? { employmentInformation?.occupation }
     public var occupationSubCategoryEnum: OccupationSubCategory? { employmentInformation?.occupationSubCategoryEnum }
     public var occupationCategory: Occupation? { employmentInformation?.occupationCategory }
+    public var sector: Sector? { employmentInformation?.sector }
 }
 
 // Protocol conformance for MaritalInformationRepresentable
@@ -430,6 +479,8 @@ extension Member {
         Member(
             id: id,
             memberId: memberId,
+            createdDate: createdDate,
+            lastModifiedDate: lastModifiedDate,
             memberName: memberName,
             firstName: firstName,
             middleName: middleName,
@@ -440,12 +491,13 @@ extension Member {
             lifeGroupName: lifeGroupName,
             area: area,
             address: address,
-            dateOfBirth: dateOfBirth,
+            dateOfBirth: _dateOfBirth,
             title: title,
             memberType: memberType,
             bloodGroup: bloodGroup,
             preferredLanguages: preferredLanguages,
             attendingCampus: attendingCampus,
+            serviceCampus: serviceCampus,
             partOfLifeGroup: partOfLifeGroup,
             status: status,
             campus: campus,

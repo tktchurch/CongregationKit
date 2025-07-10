@@ -12,6 +12,8 @@ public protocol EmploymentInformationRepresentable: Sendable {
     var nameOfTheOrganization: String? { get }
     /// The member's occupation category, if available.
     var occupation: Occupation? { get }
+    /// The member's employment sector, if available.
+    var sector: Sector? { get }
     /// The member's occupation subcategory as an enum, if available.
     var occupationSubCategoryEnum: OccupationSubCategory? { get }
     /// The member's occupation category, inferred from subcategory if needed.

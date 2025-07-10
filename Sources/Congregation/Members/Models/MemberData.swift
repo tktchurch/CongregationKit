@@ -244,6 +244,54 @@ public enum AttendingCampus: String, Codable, CaseIterable, Sendable {
     }
 }
 
+/// Represents the campus where a member serves as defined in Salesforce.
+public enum ServiceCampus: String, Codable, CaseIterable, Sendable {
+    case eastLBNagar = "East - LB Nagar"
+    case westKukatpally = "West -Kukatpally"
+    case westHiTechCity = "West - HiTech City"
+    case centralSecunderabad = "Central - Secunderabad"
+    case ioc = "IOC"
+    case notApplicable = "Not Applicable"
+
+    /// A user-friendly display name for the campus.
+    public var displayName: String {
+        switch self {
+        case .westKukatpally:
+            return "West - Kukatpally"
+        default:
+            return self.rawValue
+        }
+    }
+
+    /// Custom decoding to normalize input values from API.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let value = try container.decode(String.self)
+        switch value.trimmingCharacters(in: .whitespacesAndNewlines) {
+        case "West -Kukatpally", "West - Kukatpally":
+            self = .westKukatpally
+        case "East - LB Nagar":
+            self = .eastLBNagar
+        case "West - HiTech City":
+            self = .westHiTechCity
+        case "Central - Secunderabad":
+            self = .centralSecunderabad
+        case "IOC":
+            self = .ioc
+        case "Not Applicable":
+            self = .notApplicable
+        default:
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unknown ServiceCampus value: \(value)")
+        }
+    }
+
+    /// Custom encoding to use the normalized value.
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(self.rawValue)
+    }
+}
+
 /// Represents the status of a member (e.g., Regular, Inactive) as defined in Salesforce.
 public enum MemberStatus: String, Codable, CaseIterable, Sendable {
     case regular = "Regular"
@@ -402,10 +450,96 @@ public enum AttendingService: String, Codable, CaseIterable, Sendable {
     }
 }
 
+/// Struct representing detailed birth date information.
+public struct BirthDateInfo: Codable, Equatable, Sendable {
+    /// The original birth date.
+    public let date: Date
+    /// The year component.
+    public let year: Int
+    /// The month component.
+    public let month: Int
+    /// The day component.
+    public let day: Int
+    /// The day of the week (1 = Sunday, 7 = Saturday).
+    public let dayOfWeek: Int
+    /// Birth date in "day/month" format (e.g., "15/3" for March 15th).
+    public var shortFormat: String {
+        return "\(day)/\(month)"
+    }
+    /// Age in years.
+    public var age: Int {
+        let calendar = Calendar.current
+        let now = Date()
+        let ageComponents = calendar.dateComponents([.year, .month, .day], from: date, to: now)
+        guard let years = ageComponents.year else { return 0 }
+        let hasHadBirthdayThisYear: Bool
+        if let month = ageComponents.month, let day = ageComponents.day {
+            hasHadBirthdayThisYear = (month > 0) || (month == 0 && day >= 0)
+        } else {
+            hasHadBirthdayThisYear = true
+        }
+        return years - (hasHadBirthdayThisYear ? 0 : 1)
+    }
+    /// Birth date in "month/day" format (e.g., "3/15" for March 15th).
+    public var usFormat: String {
+        return "\(month)/\(day)"
+    }
+    /// Full birth date in "day/month/year" format (e.g., "15/3/1990").
+    public var fullFormat: String {
+        return "\(day)/\(month)/\(year)"
+    }
+    /// Whether the birthday is this year.
+    public var isThisYear: Bool {
+        let calendar = Calendar.current
+        let now = Date()
+        let birthdayThisYear = calendar.date(bySetting: .year, value: calendar.component(.year, from: now), of: date)
+        return birthdayThisYear == date
+    }
+    /// Days until next birthday.
+    public var daysUntilNextBirthday: Int {
+        let calendar = Calendar.current
+        let now = Date()
+        let currentYear = calendar.component(.year, from: now)
+        
+        // Try this year's birthday
+        if let birthdayThisYear = calendar.date(bySetting: .year, value: currentYear, of: date) {
+            if birthdayThisYear > now {
+                return calendar.dateComponents([.day], from: now, to: birthdayThisYear).day ?? 0
+            }
+        }
+        
+        // Try next year's birthday
+        if let birthdayNextYear = calendar.date(bySetting: .year, value: currentYear + 1, of: date) {
+            return calendar.dateComponents([.day], from: now, to: birthdayNextYear).day ?? 0
+        }
+        
+        return 0
+    }
+    
+    public init(date: Date) {
+        self.date = date
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month, .day, .weekday], from: date)
+        self.year = components.year ?? 0
+        self.month = components.month ?? 0
+        self.day = components.day ?? 0
+        self.dayOfWeek = components.weekday ?? 0
+    }
+}
+
 /// Main struct for member data, representing all Salesforce member fields in a type-safe way.
 public struct MemberData: MemberDataRepresentable {
-    /// The member's date of birth, if available.
-    public let dateOfBirth: Date?
+    /// The member's date of birth with detailed information, if available.
+    public var dateOfBirth: BirthDateInfo? {
+        guard let date = _dateOfBirth else { return nil }
+        return BirthDateInfo(date: date)
+    }
+    /// Internal storage for the date of birth
+    private let _dateOfBirth: Date?
+    /// Date when the member record was created.
+    public let createdDate: Date?
+    /// Date when the member record was last modified.
+    public let lastModifiedDate: Date?
     /// The member's title (e.g., Mr, Mrs, Dr), if available.
     public let title: MemberTitle?
     /// The member's type (e.g., TKT, EFAM), if available.
@@ -416,6 +550,8 @@ public struct MemberData: MemberDataRepresentable {
     public let preferredLanguages: [PreferredLanguage]?
     /// The campus the member is attending, if available.
     public let attendingCampus: AttendingCampus?
+    /// The campus where the member serves, if available.
+    public let serviceCampus: ServiceCampus?
     /// Whether the member is part of a life group.
     public let partOfLifeGroup: Bool?
     /// The member's status (e.g., Regular, Inactive), if available.
@@ -429,23 +565,29 @@ public struct MemberData: MemberDataRepresentable {
 
     public init(
         dateOfBirth: Date? = nil,
+        createdDate: Date? = nil,
+        lastModifiedDate: Date? = nil,
         title: MemberTitle? = nil,
         memberType: MemberType? = nil,
         bloodGroup: BloodGroup? = nil,
         preferredLanguages: [PreferredLanguage]? = nil,
         attendingCampus: AttendingCampus? = nil,
+        serviceCampus: ServiceCampus? = nil,
         partOfLifeGroup: Bool? = nil,
         status: MemberStatus? = nil,
         campus: Campus? = nil,
         spm: Bool? = nil,
         attendingService: AttendingService? = nil
     ) {
-        self.dateOfBirth = dateOfBirth
+        self._dateOfBirth = dateOfBirth
+        self.createdDate = createdDate
+        self.lastModifiedDate = lastModifiedDate
         self.title = title
         self.memberType = memberType
         self.bloodGroup = bloodGroup
         self.preferredLanguages = preferredLanguages
         self.attendingCampus = attendingCampus
+        self.serviceCampus = serviceCampus
         self.partOfLifeGroup = partOfLifeGroup
         self.status = status
         self.campus = campus

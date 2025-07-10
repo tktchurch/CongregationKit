@@ -1,5 +1,48 @@
 import Foundation
 
+/// Enum for employment sector values from Salesforce
+public enum Sector: String, Codable, CaseIterable, Sendable {
+    case governmentPublic = "Government/Public"
+    case privateSector = "Private"
+    case business = "Business"
+    case privateAndBusiness = "Private & Business"
+    case govPublicAndBusiness = "Gov/Public & Business"
+    case notApplicable = "Not Applicable"
+    
+    public var displayName: String {
+        switch self {
+        case .governmentPublic: return "Government/Public"
+        case .privateSector: return "Private"
+        case .business: return "Business"
+        case .privateAndBusiness: return "Private & Business"
+        case .govPublicAndBusiness: return "Gov/Public & Business"
+        case .notApplicable: return "Not Applicable"
+        }
+    }
+    
+    public var shortDisplay: String {
+        switch self {
+        case .governmentPublic: return "Gov/Pub"
+        case .privateSector: return "Private"
+        case .business: return "Business"
+        case .privateAndBusiness: return "Priv+Biz"
+        case .govPublicAndBusiness: return "Gov+Biz"
+        case .notApplicable: return "N/A"
+        }
+    }
+    
+    public var internationalFormat: String {
+        switch self {
+        case .governmentPublic: return "GOV_PUB"
+        case .privateSector: return "PRIVATE"
+        case .business: return "BUSINESS"
+        case .privateAndBusiness: return "PRIV_BIZ"
+        case .govPublicAndBusiness: return "GOV_BIZ"
+        case .notApplicable: return "NA"
+        }
+    }
+}
+
 /// A type representing a member's employment information, including status, organization, occupation, and subcategory.
 ///
 /// - Note: This struct supports hierarchical occupation modeling. Use `occupationCategory` and `occupationSubCategoryEnum` for safe access to category and subcategory.
@@ -10,6 +53,8 @@ public struct EmploymentInformation: Codable, Equatable, Sendable, EmploymentInf
     public let nameOfTheOrganization: String?
     /// The member's occupation category (e.g., IT, Education).
     public let occupation: Occupation?
+    /// The member's employment sector (e.g., Government/Public, Private, Business).
+    public let sector: Sector?
     private let subCategoryRawValue: String?
     /// The member's occupation subcategory, if available (e.g., Doctor, Teacher).
     public var occupationSubCategoryEnum: OccupationSubCategory? {
@@ -27,23 +72,26 @@ public struct EmploymentInformation: Codable, Equatable, Sendable, EmploymentInf
     ///   - employmentStatus: The member's employment status.
     ///   - nameOfTheOrganization: The name of the organization.
     ///   - occupation: The occupation category.
+    ///   - sector: The employment sector.
     ///   - occupationSubCategoryRaw: The raw value for the occupation subcategory.
     public init(
-        employmentStatus: EmploymentStatus?, nameOfTheOrganization: String?, occupation: Occupation?, occupationSubCategoryRaw: String?
+        employmentStatus: EmploymentStatus?, nameOfTheOrganization: String?, occupation: Occupation?, sector: Sector?, occupationSubCategoryRaw: String?
     ) {
         self.employmentStatus = employmentStatus
         self.nameOfTheOrganization = nameOfTheOrganization
         self.occupation = occupation
+        self.sector = sector
         self.subCategoryRawValue = occupationSubCategoryRaw
     }
     enum CodingKeys: String, CodingKey {
-        case employmentStatus, nameOfTheOrganization, occupation, occupationSubCategory
+        case employmentStatus, nameOfTheOrganization, occupation, sector, occupationSubCategory
     }
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.employmentStatus = try container.decodeIfPresent(EmploymentStatus.self, forKey: .employmentStatus)
         self.nameOfTheOrganization = try container.decodeIfPresent(String.self, forKey: .nameOfTheOrganization)
         self.occupation = try container.decodeIfPresent(Occupation.self, forKey: .occupation)
+        self.sector = try container.decodeIfPresent(Sector.self, forKey: .sector)
         self.subCategoryRawValue = try container.decodeIfPresent(String.self, forKey: .occupationSubCategory)
     }
     public func encode(to encoder: Encoder) throws {
@@ -51,6 +99,7 @@ public struct EmploymentInformation: Codable, Equatable, Sendable, EmploymentInf
         try container.encodeIfPresent(employmentStatus, forKey: .employmentStatus)
         try container.encodeIfPresent(nameOfTheOrganization, forKey: .nameOfTheOrganization)
         try container.encodeIfPresent(occupation, forKey: .occupation)
+        try container.encodeIfPresent(sector, forKey: .sector)
         try container.encodeIfPresent(subCategoryRawValue, forKey: .occupationSubCategory)
     }
 }
