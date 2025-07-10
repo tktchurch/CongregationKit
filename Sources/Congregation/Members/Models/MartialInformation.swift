@@ -403,6 +403,14 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
         return WeddingAnniversaryInfo(date: date)
     }
 
+    /// The raw wedding anniversary date, if available
+    ///
+    /// This property provides direct access to the raw anniversary date
+    /// for cases where you need the original Date object.
+    public var weddingAnniversaryDate: Date? {
+        return _weddingAnniversary
+    }
+
     /// Internal storage for the wedding anniversary date
     public let _weddingAnniversary: Date?
 }
