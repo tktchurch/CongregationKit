@@ -270,7 +270,7 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
         self.firstName = firstName
         self.middleName = middleName
         self.lastName = lastName
-        
+
         // Construct memberName from available components
         let constructedMemberName: String? = {
             var components: [String] = []
@@ -280,7 +280,7 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
             return components.isEmpty ? memberName : components.joined(separator: " ")
         }()
         self.memberName = constructedMemberName
-        
+
         self.gender = gender
         self.phone = phone
         self.lifeGroupName = lifeGroupName
@@ -341,7 +341,7 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
         self.firstName = firstName
         self.middleName = middleName
         self.lastName = lastName
-        
+
         // Construct memberName from available components
         let constructedMemberName: String? = {
             var components: [String] = []
@@ -351,7 +351,7 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
             return components.isEmpty ? memberName : components.joined(separator: " ")
         }()
         self.memberName = constructedMemberName
-        
+
         self.gender = gender
         self.phone = phone
         self.lifeGroupName = lifeGroupName
@@ -417,12 +417,12 @@ extension Member {
                 return nil
             }
         }()
-        
+
         // Parse name fields from API response
         let fullName = try container.decodeIfPresent(String.self, forKey: .name)
         let middleName = try container.decodeIfPresent(String.self, forKey: .middleName)
         let lastNameSurname = try container.decodeIfPresent(String.self, forKey: .lastNameSurname)
-        
+
         // Parse full name into first and last name components
         let (firstName, lastName): (String?, String?) = {
             guard let fullName = fullName else { return (nil, nil) }
@@ -437,10 +437,10 @@ extension Member {
                 return (nil, nil)
             }
         }()
-        
+
         // Use lastNameSurname if available, otherwise use parsed lastName
         let finalLastName = lastNameSurname ?? lastName
-        
+
         // Construct memberName from available components
         let memberName: String? = {
             var components: [String] = []
@@ -449,7 +449,7 @@ extension Member {
             if let finalLastName = finalLastName { components.append(finalLastName) }
             return components.isEmpty ? fullName : components.joined(separator: " ")
         }()
-        
+
         let gender = try container.decodeIfPresent(Gender.self, forKey: .gender)
         let phone =
             try container.decodeIfPresent(String.self, forKey: .contactNumberMobile)
