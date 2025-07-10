@@ -183,9 +183,17 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
     }
 
     /// Coding keys for mapping API fields to struct properties
-    enum CodingKeys: String, CodingKey {
+    private enum CodingKeys: String, CodingKey {
         case maritalStatus = "martialStatus"
         case weddingAnniversary = "weddingAnniversaryDdMmYyyy"
+        case spouseName
+        case numberOfChildren
+    }
+    
+    /// Coding keys for encoding (different from decoding keys)
+    private enum EncodingKeys: String, CodingKey {
+        case maritalStatus = "martialStatus"
+        case weddingAnniversary = "weddingAnniversary"
         case spouseName
         case numberOfChildren
     }
@@ -226,10 +234,15 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
     /// - Parameter encoder: The encoder to write data to
     /// - Throws: `EncodingError` if the data cannot be encoded
     public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
+        var container = encoder.container(keyedBy: EncodingKeys.self)
         try container.encodeIfPresent(maritalStatus, forKey: .maritalStatus)
         if let date = _weddingAnniversary {
-            let dateString = MaritalInformation.dateFormatter.string(from: date)
+            let isoFormatter = DateFormatter()
+            isoFormatter.dateFormat = "yyyy-MM-dd"
+            isoFormatter.locale = Locale(identifier: "en_US_POSIX")
+            isoFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+            let dateString = isoFormatter.string(from: date)
+            // Use a custom key for encoding to avoid the API field name
             try container.encode(dateString, forKey: .weddingAnniversary)
         }
         try container.encodeIfPresent(spouseName, forKey: .spouseName)
@@ -352,8 +365,11 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
         public var isThisYear: Bool {
             let calendar = Calendar.current
             let now = Date()
-            let anniversaryThisYear = calendar.date(bySetting: .year, value: calendar.component(.year, from: now), of: date)
-            return anniversaryThisYear == date
+            let currentMonth = calendar.component(.month, from: now)
+            let currentDay = calendar.component(.day, from: now)
+
+            // Check if the anniversary month and day match today's month and day
+            return month == currentMonth && day == currentDay
         }
 
         /// Days until next anniversary
@@ -404,12 +420,16 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
         return WeddingAnniversaryInfo(date: date)
     }
 
-    /// Internal storage for the wedding anniversary date
+    /// The raw wedding anniversary date, if available
     ///
-    /// This private property stores the raw anniversary date, which is then
-    /// processed by the `weddingAnniversaryInfo` computed property to provide
-    /// rich anniversary information.
-    private let _weddingAnniversary: Date?
+    /// This property provides direct access to the raw anniversary date
+    /// for cases where you need the original Date object.
+    public var weddingAnniversaryDate: Date? {
+        return _weddingAnniversary
+    }
+
+    /// Internal storage for the wedding anniversary date
+    public let _weddingAnniversary: Date?
 }
 
 /// Represents marital status values with user-friendly display names
