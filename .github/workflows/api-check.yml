@@ -43,6 +43,7 @@ jobs:
             src_file="${symbolgraph_dir}/${module}.symbols.json"
             dst_file="${{ github.workspace }}/symbol-graphs/pr/${module}.symbols.json"
             if [ -f "$src_file" ]; then
+              mkdir -p "$(dirname "$dst_file")"  # Ensure destination directory exists
               mv "$src_file" "$dst_file"
             else
               echo "::error ::Symbol graph file for $module not found in $symbolgraph_dir"
@@ -68,8 +69,9 @@ jobs:
           # Move generated symbol graph files to symbol-graphs/main
           for module in Congregation SalesforceClient CongregationKit; do
             src_file="${symbolgraph_dir}/${module}.symbols.json"
-            dst_file="${{ github.workflow }}/symbol-graphs/main/${module}.symbols.json"
+            dst_file="${{ github.workspace }}/symbol-graphs/main/${module}.symbols.json"
             if [ -f "$src_file" ]; then
+              mkdir -p "$(dirname "$dst_file")"  # Ensure destination directory exists
               mv "$src_file" "$dst_file"
             else
               echo "::error ::Symbol graph file for $module not found in $symbolgraph_dir"
@@ -156,7 +158,7 @@ jobs:
           path: ${{ github.workspace }}/symbol-graphs/diff_*.txt
           retention-days: 7
 
-      # Post PR comment with table
+      # Post PR comment with API changes
       - name: Comment on PR with API changes
         if: always()
         uses: peter-evans/create-or-update-comment@v4
