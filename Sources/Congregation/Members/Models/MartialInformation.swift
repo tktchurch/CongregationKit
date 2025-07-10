@@ -229,7 +229,11 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encodeIfPresent(maritalStatus, forKey: .maritalStatus)
         if let date = _weddingAnniversary {
-            let dateString = MaritalInformation.dateFormatter.string(from: date)
+            let isoFormatter = DateFormatter()
+            isoFormatter.dateFormat = "yyyy-MM-dd"
+            isoFormatter.locale = Locale(identifier: "en_US_POSIX")
+            isoFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+            let dateString = isoFormatter.string(from: date)
             try container.encode(dateString, forKey: .weddingAnniversary)
         }
         try container.encodeIfPresent(spouseName, forKey: .spouseName)
@@ -352,8 +356,11 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
         public var isThisYear: Bool {
             let calendar = Calendar.current
             let now = Date()
-            let anniversaryThisYear = calendar.date(bySetting: .year, value: calendar.component(.year, from: now), of: date)
-            return anniversaryThisYear == date
+            let currentMonth = calendar.component(.month, from: now)
+            let currentDay = calendar.component(.day, from: now)
+
+            // Check if the anniversary month and day match today's month and day
+            return month == currentMonth && day == currentDay
         }
 
         /// Days until next anniversary
