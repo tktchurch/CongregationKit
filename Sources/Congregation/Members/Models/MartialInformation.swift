@@ -189,7 +189,7 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
         case spouseName
         case numberOfChildren
     }
-    
+
     /// Coding keys for encoding (different from decoding keys)
     private enum EncodingKeys: String, CodingKey {
         case maritalStatus = "martialStatus"
