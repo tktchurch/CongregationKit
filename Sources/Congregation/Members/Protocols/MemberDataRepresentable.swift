@@ -36,6 +36,8 @@ public protocol MemberDataRepresentable: Codable, Sendable {
     var attendingService: AttendingService? { get }
     /// The member's age, calculated from dateOfBirth if available.
     var age: Int? { get }
+    /// The parsed member photo (URL and alt text), if available.
+    var photo: MemberPhoto? { get }
 }
 
 extension MemberDataRepresentable {

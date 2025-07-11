@@ -720,6 +720,16 @@ public struct BirthDateInfo: Codable, Equatable, Sendable {
     }
 }
 
+/// Represents a member's photo with extracted URL, alt text, and tags from HTML.
+public struct MemberPhoto: Codable, Equatable, Sendable {
+    /// The direct image URL
+    public let url: String
+    /// The alt text (description) of the image, if available (for WhatsApp images, this is the timestamp as a string)
+    public let alt: String?
+    /// Tags for the photo (e.g., 'whatsapp' if WhatsApp image)
+    public let tags: [String]
+}
+
 /// Main struct for member data, representing all Salesforce member fields in a type-safe way.
 public struct MemberData: MemberDataRepresentable {
     /// The member's date of birth with detailed information, if available.
@@ -755,6 +765,70 @@ public struct MemberData: MemberDataRepresentable {
     public let spm: Bool?
     /// The service the member is attending, if available.
     public let attendingService: AttendingService?
+    /// The raw HTML for the member's photo as received from the API.
+    public let photoRaw: String?
+    /// The parsed member photo (URL and alt text), if available.
+    public var photo: MemberPhoto? {
+        guard let html = photoRaw else { return nil }
+        // Simple regex to extract src and alt from <img ...>
+        let pattern = #"<img[^>]*src=\"([^"]+)\"[^>]*alt=\"([^"]*)\"[^>]*/?>"#
+        if let regex = try? NSRegularExpression(pattern: pattern, options: []),
+            let match = regex.firstMatch(in: html, options: [], range: NSRange(html.startIndex..., in: html)),
+            let srcRange = Range(match.range(at: 1), in: html)
+        {
+            let src = html[srcRange].replacingOccurrences(of: "&amp;", with: "&")
+            let alt: String? = {
+                if let altRange = Range(match.range(at: 2), in: html) {
+                    var altText = String(html[altRange])
+                    // WhatsApp logic
+                    if altText.lowercased().hasPrefix("whatsapp image ") {
+                        let datetimePart = altText.dropFirst("WhatsApp Image ".count)
+                        // Try to parse the datetime string to Date
+                        let formatter = DateFormatter()
+                        formatter.locale = Locale(identifier: "en_US_POSIX")
+                        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                        formatter.dateFormat = "yyyy-MM-dd 'at' h.mm.ss a'.jpeg'"
+                        if let date = formatter.date(from: String(datetimePart)) {
+                            return String(Int(date.timeIntervalSince1970))
+                        } else {
+                            // If parsing fails, skip alt
+                            return nil
+                        }
+                    } else {
+                        // Normalize: trim, replace underscores/dashes/multiple spaces, capitalize first letter
+                        altText = altText.trimmingCharacters(in: .whitespacesAndNewlines)
+                        altText = altText.replacingOccurrences(of: "[_-]+", with: " ", options: .regularExpression)
+                        altText = altText.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+                        if let first = altText.first {
+                            altText = first.uppercased() + altText.dropFirst()
+                        }
+                        return altText.isEmpty ? nil : altText
+                    }
+                }
+                return nil
+            }()
+            let tags: [String] = {
+                if let altRange = Range(match.range(at: 2), in: html) {
+                    let altText = String(html[altRange])
+                    if altText.lowercased().contains("whatsapp") {
+                        return ["whatsapp"]
+                    }
+                }
+                return []
+            }()
+            return MemberPhoto(url: String(src), alt: alt, tags: tags)
+        }
+        // fallback: try to extract src only
+        let srcPattern = #"<img[^>]*src=\"([^"]+)\""#
+        if let regex = try? NSRegularExpression(pattern: srcPattern, options: []),
+            let match = regex.firstMatch(in: html, options: [], range: NSRange(html.startIndex..., in: html)),
+            let srcRange = Range(match.range(at: 1), in: html)
+        {
+            let src = html[srcRange].replacingOccurrences(of: "&amp;", with: "&")
+            return MemberPhoto(url: String(src), alt: nil, tags: [])
+        }
+        return nil
+    }
 
     public init(
         dateOfBirth: Date? = nil,
@@ -770,7 +844,8 @@ public struct MemberData: MemberDataRepresentable {
         status: MemberStatus? = nil,
         campus: Campus? = nil,
         spm: Bool? = nil,
-        attendingService: AttendingService? = nil
+        attendingService: AttendingService? = nil,
+        photoRaw: String? = nil
     ) {
         self._dateOfBirth = dateOfBirth
         self.createdDate = createdDate
@@ -786,5 +861,6 @@ public struct MemberData: MemberDataRepresentable {
         self.campus = campus
         self.spm = spm
         self.attendingService = attendingService
+        self.photoRaw = photoRaw
     }
 }
