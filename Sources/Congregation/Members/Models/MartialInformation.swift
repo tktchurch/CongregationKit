@@ -458,6 +458,12 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
 ///     print("Consider single adult ministry")
 /// case .widowed:
 ///     print("Consider grief support ministry")
+/// case .engaged:
+///     print("Consider pre-marital counseling")
+/// case .notApplicable:
+///     print("Not applicable for ministry categorization")
+/// case .unmarried:
+///     print("Consider single adult ministry")
 /// default:
 ///     print("Other marital status")
 /// }
@@ -471,25 +477,25 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
 /// - ``widowed`` - Widowed status
 /// - ``divorced`` - Divorced status
 /// - ``separated`` - Separated status
+/// - ``engaged`` - Engaged status
+/// - ``notApplicable`` - Not Applicable status
+/// - ``unmarried`` - Unmarried status
 /// - ``other`` - Other marital status
 ///
 /// ### Display Properties
 /// - ``displayName`` - User-friendly display name
 public enum MaritalStatus: String, Codable, CaseIterable, Sendable {
-    /// Single status
     case single = "Single"
-    /// Married status
     case married = "Married"
-    /// Widowed status
     case widowed = "Widowed"
-    /// Divorced status
     case divorced = "Divorced"
-    /// Separated status
     case separated = "Separated"
-    /// Other marital status
+    case engaged = "Engaged"
+    case notApplicable = "Not Applicable"
+    case unmarried = "Unmarried"
+    // Remove or keep 'other' as needed. Keeping for now in case used elsewhere.
     case other
 
-    /// A user-friendly display name for the marital status
     public var displayName: String {
         switch self {
         case .single: return "Single"
@@ -497,6 +503,9 @@ public enum MaritalStatus: String, Codable, CaseIterable, Sendable {
         case .widowed: return "Widowed"
         case .divorced: return "Divorced"
         case .separated: return "Separated"
+        case .engaged: return "Engaged"
+        case .notApplicable: return "Not Applicable"
+        case .unmarried: return "Unmarried"
         case .other: return "Other"
         }
     }
