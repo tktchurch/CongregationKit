@@ -229,6 +229,55 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
     /// Discipleship and spiritual information for a member
     public let discipleshipInformation: DiscipleshipInformation?
 
+    /// The raw HTML for the member's photo as received from the API.
+    public let photoRaw: String?
+    /// The parsed member photo (URL and alt text), if available.
+    public var photo: MemberPhoto? {
+        guard let html = photoRaw else { return nil }
+        // Simple regex to extract src and alt from <img ...>
+        let pattern = #"<img[^>]*src=\"([^"]+)\"[^>]*alt=\"([^"]*)\"[^>]*/?>"#
+        if let regex = try? NSRegularExpression(pattern: pattern, options: []),
+            let match = regex.firstMatch(in: html, options: [], range: NSRange(html.startIndex..., in: html)),
+            let srcRange = Range(match.range(at: 1), in: html)
+        {
+            let src = html[srcRange].replacingOccurrences(of: "&amp;", with: "&")
+            let alt: String? = {
+                if let altRange = Range(match.range(at: 2), in: html) {
+                    var altText = String(html[altRange])
+                    // Normalize: trim, replace underscores/dashes/multiple spaces, capitalize first letter
+                    altText = altText.trimmingCharacters(in: .whitespacesAndNewlines)
+                    altText = altText.replacingOccurrences(of: "[_-]+", with: " ", options: .regularExpression)
+                    altText = altText.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+                    if let first = altText.first {
+                        altText = first.uppercased() + altText.dropFirst()
+                    }
+                    return altText.isEmpty ? nil : altText
+                }
+                return nil
+            }()
+            let tags: [String] = {
+                if let altRange = Range(match.range(at: 2), in: html) {
+                    let altText = String(html[altRange])
+                    if altText.lowercased().contains("whatsapp") {
+                        return ["whatsapp"]
+                    }
+                }
+                return []
+            }()
+            return MemberPhoto(url: String(src), alt: alt, tags: tags)
+        }
+        // fallback: try to extract src only
+        let srcPattern = #"<img[^>]*src=\"([^"]+)\""#
+        if let regex = try? NSRegularExpression(pattern: srcPattern, options: []),
+            let match = regex.firstMatch(in: html, options: [], range: NSRange(html.startIndex..., in: html)),
+            let srcRange = Range(match.range(at: 1), in: html)
+        {
+            let src = html[srcRange].replacingOccurrences(of: "&amp;", with: "&")
+            return MemberPhoto(url: String(src), alt: nil, tags: [])
+        }
+        return nil
+    }
+
     // MARK: - Initializer
     /// Backward-compatible initializer accepting String for memberId
     public init(
@@ -261,7 +310,8 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
         contactInformation: ContactInformation? = nil,
         employmentInformation: EmploymentInformation? = nil,
         maritalInformation: MaritalInformation? = nil,
-        discipleshipInformation: DiscipleshipInformation? = nil
+        discipleshipInformation: DiscipleshipInformation? = nil,
+        photoRaw: String? = nil
     ) {
         self.id = id
         self.memberId = memberId.flatMap { MemberID(rawValue: $0) }
@@ -300,6 +350,7 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
         self.employmentInformation = employmentInformation
         self.maritalInformation = maritalInformation
         self.discipleshipInformation = discipleshipInformation
+        self.photoRaw = photoRaw
     }
     /// Preferred initializer accepting MemberID for memberId
     public init(
@@ -332,7 +383,8 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
         contactInformation: ContactInformation? = nil,
         employmentInformation: EmploymentInformation? = nil,
         maritalInformation: MaritalInformation? = nil,
-        discipleshipInformation: DiscipleshipInformation? = nil
+        discipleshipInformation: DiscipleshipInformation? = nil,
+        photoRaw: String? = nil
     ) {
         self.id = id
         self.memberId = memberId
@@ -371,6 +423,7 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
         self.employmentInformation = employmentInformation
         self.maritalInformation = maritalInformation
         self.discipleshipInformation = discipleshipInformation
+        self.photoRaw = photoRaw
     }
 }
 
@@ -380,7 +433,7 @@ extension Member {
             case id, memberId, createdDate, lastModifiedDate, gender, phone, email,
                 lifeGroupName, area, address, dateOfBirth,
                 title, memberType, bloodGroup, preferredLanguage, attendingCampus, serviceCampus, partOfLifeGroup, status, campus, spm,
-                attendingService
+                attendingService, photo
             // API alternate keys
             case currentAddress, contactNumberMobile, lifeGroupLeaderName
             case profession, location, whatsappNo, alternateNumber
@@ -522,6 +575,7 @@ extension Member {
         )
         let maritalInformation = try MaritalInformation(from: decoder)
         let discipleshipInformation = try DiscipleshipInformation(from: decoder)
+        let photoRaw = try container.decodeIfPresent(String.self, forKey: .photo)
         self.init(
             id: id,
             memberId: memberId,
@@ -552,7 +606,8 @@ extension Member {
             contactInformation: contactInformation,
             employmentInformation: employmentInformation,
             maritalInformation: maritalInformation,
-            discipleshipInformation: discipleshipInformation
+            discipleshipInformation: discipleshipInformation,
+            photoRaw: photoRaw
         )
     }
 }
@@ -846,7 +901,8 @@ extension Member {
             contactInformation: expanded.contains(.contactInformation) ? contactInformation : nil,
             employmentInformation: expanded.contains(.employmentInformation) ? employmentInformation : nil,
             maritalInformation: expanded.contains(.martialInformation) ? maritalInformation : nil,
-            discipleshipInformation: expanded.contains(.discipleshipInformation) ? discipleshipInformation : nil
+            discipleshipInformation: expanded.contains(.discipleshipInformation) ? discipleshipInformation : nil,
+            photoRaw: photoRaw
         )
     }
 }

@@ -190,3 +190,15 @@ public protocol SalesforceSeekerRoutes: SalesforceAPIRoute {
         contactNumber: String?
     ) async throws -> SeekerResponse
 }
+
+/// Protocol for Salesforce files routes
+public protocol SalesforceFilesRoutes: SalesforceAPIRoute {
+    /// Downloads a file from Salesforce using a record ID
+    /// - Parameters:
+    ///   - recordId: The record ID to download the file from
+    ///   - accessToken: The OAuth access token
+    ///   - instanceUrl: The Salesforce instance URL
+    /// - Returns: File download response containing file data and metadata
+    /// - Throws: `FileDownloadError` if download fails
+    func download(recordId: String, accessToken: String, instanceUrl: String) async throws -> FileDownloadResponse
+}

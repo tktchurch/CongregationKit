@@ -13,6 +13,7 @@ public enum SalesforceAPIConstants {
     /// v2 (paginated)
     public static let memberEndpointV2 = "/services/apexrest/members"
     public static let seekerEndpointV2 = "/services/apexrest/seekers"
+    public static let fileDownloadEndpoint = "/services/apexrest/filedownload"
 }
 
 /// Utility functions for Salesforce API operations
@@ -129,6 +130,55 @@ public actor SalesforceAPIHandler {
         let data = Data(body.readableBytesView)
         let jsonData = try JSONDecoder().decode(type, from: data)
         return jsonData
+    }
+
+    /// Processes a binary response for file downloads
+    /// - Parameters:
+    ///   - response: The HTTP response
+    ///   - recordId: The record ID used for the download
+    ///   - contentDocumentId: The ContentDocument ID from Salesforce
+    /// - Returns: FileDownloadResponse containing file data and metadata
+    /// - Throws: FileDownloadError if processing fails
+    public func processBinaryResponse(
+        _ response: HTTPClientResponse,
+        recordId: String,
+        contentDocumentId: String
+    ) async throws -> FileDownloadResponse {
+        guard response.status == .ok else {
+            let body = try await response.body.collect(upTo: 1024 * 1024)
+            let errorMessage = String(buffer: body)
+
+            // Try to parse as JSON error response
+            if let errorData = try? JSONSerialization.jsonObject(with: Data(body.readableBytesView)) as? [String: Any],
+                let error = errorData["error"] as? String
+            {
+                throw FileDownloadError.serverError(error)
+            } else {
+                throw FileDownloadError.serverError("HTTP \(response.status.code): \(errorMessage)")
+            }
+        }
+
+        let body = try await response.body.collect(upTo: 50 * 1024 * 1024)  // 50MB limit for files
+        let data = Data(body.readableBytesView)
+
+        // Convert headers to dictionary
+        var headers: [String: String] = [:]
+        for header in response.headers {
+            headers[header.name] = header.value
+        }
+
+        guard
+            let fileResponse = FileDownloadResponse(
+                data: data,
+                headers: headers,
+                recordId: recordId,
+                contentDocumentId: contentDocumentId
+            )
+        else {
+            throw FileDownloadError.invalidFileData
+        }
+
+        return fileResponse
     }
 
     /// Creates form-encoded body for OAuth requests
