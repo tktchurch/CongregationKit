@@ -71,16 +71,24 @@ public struct FileDownloadResponse: Codable, Sendable {
         self.recordId = recordId
         self.contentDocumentId = contentDocumentId
 
-        // Extract filename from Content-Disposition header
+        // Extract filename from Content-Disposition header (case-insensitive)
         var extractedFilename = "download"
-        if let contentDisposition = headers["Content-Disposition"] {
+        let contentDispositionKey = headers.keys.first { $0.lowercased() == "content-disposition" }
+        if let contentDisposition = contentDispositionKey.flatMap({ headers[$0] }) {
             let pattern = "filename=\"([^\"]+)\""
             if let regex = try? NSRegularExpression(pattern: pattern),
                 let match = regex.firstMatch(
                     in: contentDisposition, range: NSRange(contentDisposition.startIndex..., in: contentDisposition)),
                 let range = Range(match.range(at: 1), in: contentDisposition)
             {
-                extractedFilename = String(contentDisposition[range])
+                let filename = String(contentDisposition[range])
+                // URL decode the filename (e.g., "WhatsApp+Image+2024-06-09+at+8.39.03+PM.jpeg")
+                // First replace + with spaces, then remove percent encoding
+                let decodedFilename =
+                    filename
+                    .replacingOccurrences(of: "+", with: " ")
+                    .removingPercentEncoding ?? filename
+                extractedFilename = decodedFilename
             }
         }
 
@@ -94,8 +102,9 @@ public struct FileDownloadResponse: Codable, Sendable {
             self.fileExtension = ""
         }
 
-        // Extract content type from headers
-        self.contentType = headers["Content-Type"] ?? "application/octet-stream"
+        // Extract content type from headers (case-insensitive)
+        let contentTypeKey = headers.keys.first { $0.lowercased() == "content-type" }
+        self.contentType = contentTypeKey.flatMap { headers[$0] } ?? "application/octet-stream"
     }
 }
 
