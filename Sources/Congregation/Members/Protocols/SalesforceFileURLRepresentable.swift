@@ -8,4 +8,4 @@ public protocol SalesforceFileURLRepresentable: Sendable {
     var recordId: String? { get }
     /// Whether this is a Salesforce file URL
     var isSalesforceFileURL: Bool { get }
-} 
+}
