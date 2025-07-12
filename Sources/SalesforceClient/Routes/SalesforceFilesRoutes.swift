@@ -35,12 +35,14 @@ public struct SalesforceFilesRoutesImpl: SalesforceFilesRoutes {
             headers: requestHeaders
         )
 
-        // TODO: Implement this
-        // For file downloads, we need to get the ContentDocumentId first
-        // Since the Salesforce backend handles this internally, we'll use a placeholder
-        // In a real implementation, you might need to make an additional call to get the ContentDocumentId
-        let contentDocumentId = "placeholder"  // This would be retrieved from the response or a separate call
-
+        // Extract ContentDocumentId from response headers
+        var contentDocumentId = "unknown"
+        if let contentDocumentIdHeader = response.headers["ContentDocumentId"].first {
+            contentDocumentId = contentDocumentIdHeader
+        } else if let contentDocumentIdHeader = response.headers["X-ContentDocumentId"].first {
+            contentDocumentId = contentDocumentIdHeader
+        }
+        
         return try await client.processBinaryResponse(
             response,
             recordId: recordId,
