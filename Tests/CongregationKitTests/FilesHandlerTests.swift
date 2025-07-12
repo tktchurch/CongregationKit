@@ -1,7 +1,7 @@
 import Congregation
 import CongregationKit
-import SalesforceClient
 import Foundation
+import SalesforceClient
 import Testing
 
 @Suite("FilesHandler Tests")
@@ -12,9 +12,9 @@ actor FilesHandlerTests {
 
     init() async throws {
         guard let clientId = ProcessInfo.processInfo.environment["SF_CLIENT_ID"],
-              let clientSecret = ProcessInfo.processInfo.environment["SF_CLIENT_SECRET"],
-              let username = ProcessInfo.processInfo.environment["SF_USERNAME"],
-              let password = ProcessInfo.processInfo.environment["SF_PASSWORD"]
+            let clientSecret = ProcessInfo.processInfo.environment["SF_CLIENT_SECRET"],
+            let username = ProcessInfo.processInfo.environment["SF_USERNAME"],
+            let password = ProcessInfo.processInfo.environment["SF_PASSWORD"]
         else {
             throw NSError(domain: "Missing Salesforce credentials in environment.", code: 1)
         }
@@ -39,17 +39,17 @@ actor FilesHandlerTests {
     func testDownloadFileByRecordId() async throws {
         let recordId = "a0x2w000002jxqn"
         let response = try await handler.download(recordId: recordId)
-        
+
         #expect(response.recordId == recordId)
         #expect(!response.data.isEmpty)
         #expect(!response.filename.isEmpty)
         #expect(!response.fileExtension.isEmpty)
         #expect(response.fileSize > 0)
         #expect(response.contentType != "application/octet-stream")
-        
+
         // Additional assertions based on the actual response we saw
         #expect(response.contentType == "image/jpeg")
         #expect(response.fileExtension == "jpeg")
         #expect(response.filename.contains("WhatsApp Image"))
     }
-} 
+}

@@ -1,4 +1,5 @@
 import XCTest
+
 @testable import SalesforceClient
 
 final class FileDownloadModelsTests: XCTestCase {
@@ -6,7 +7,7 @@ final class FileDownloadModelsTests: XCTestCase {
         let data = Data([0x01, 0x02, 0x03])
         let headers = [
             "Content-Type": "image/png",
-            "Content-Disposition": "attachment; filename=photo.png"
+            "Content-Disposition": "attachment; filename=photo.png",
         ]
         let recordId = "a0x2w000002jxqn"
         let contentDocumentId = "0692w00000abcde"
@@ -51,7 +52,7 @@ final class FileDownloadModelsTests: XCTestCase {
         let data = Data([0x01])
         let headers = [
             "content-type": "application/pdf",
-            "Content-Disposition": "attachment; filename=case.pdf"
+            "Content-Disposition": "attachment; filename=case.pdf",
         ]
         let recordId = "a0x2w000002jxqn"
         let contentDocumentId = "0692w00000klmno"
@@ -64,6 +65,6 @@ final class FileDownloadModelsTests: XCTestCase {
         // This will currently fail if the implementation is not case-insensitive
         // If so, we should fix the implementation to check headers in a case-insensitive way
         XCTAssertNotNil(response)
-        XCTAssertEqual(response?.contentType, "application/octet-stream") // Should be "application/pdf" if case-insensitive
+        XCTAssertEqual(response?.contentType, "application/octet-stream")  // Should be "application/pdf" if case-insensitive
     }
-} 
+}

@@ -84,7 +84,8 @@ public struct FileDownloadResponse: Codable, Sendable {
                 let filename = String(contentDisposition[range])
                 // URL decode the filename (e.g., "WhatsApp+Image+2024-06-09+at+8.39.03+PM.jpeg")
                 // First replace + with spaces, then remove percent encoding
-                let decodedFilename = filename
+                let decodedFilename =
+                    filename
                     .replacingOccurrences(of: "+", with: " ")
                     .removingPercentEncoding ?? filename
                 extractedFilename = decodedFilename
