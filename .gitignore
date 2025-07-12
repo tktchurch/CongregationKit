@@ -9,3 +9,5 @@ DerivedData/
 Package.resolved
 .env
 .envrc
+.swiftpm/xcode
+.swiftpm/
