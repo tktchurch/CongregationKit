@@ -27,6 +27,13 @@ import Foundation
 ///     accessToken: authResponse.accessToken,
 ///     instanceUrl: authResponse.instanceUrl
 /// )
+///
+/// // Download a file
+/// let fileResponse = try await salesforce.files.download(
+///     recordId: "your_record_id",
+///     accessToken: authResponse.accessToken,
+///     instanceUrl: authResponse.instanceUrl
+/// )
 /// ```
 ///
 /// ## Topics
@@ -36,6 +43,8 @@ import Foundation
 /// ### Available Services
 /// - ``auth``
 /// - ``members``
+/// - ``seekers``
+/// - ``files``
 public actor SalesforceClient {
 
     /// Routes for Salesforce authentication
@@ -47,6 +56,9 @@ public actor SalesforceClient {
     /// Routes for Salesforce seeker management
     public let seekers: any SalesforceSeekerRoutes
 
+    /// Routes for Salesforce files
+    public let files: any SalesforceFilesRoutes
+
     private let handler: SalesforceAPIHandler
 
     /// Creates a new Salesforce API client.
@@ -56,6 +68,7 @@ public actor SalesforceClient {
         self.auth = SalesforceAuthRoutesImpl(client: handler)
         self.members = SalesforceMemberRoutesImpl(client: handler)
         self.seekers = SalesforceSeekerRoutesImpl(client: handler)
+        self.files = SalesforceFilesRoutesImpl(client: handler)
     }
 }
 
@@ -84,6 +97,21 @@ extension SalesforceClient {
         let authResponse = try await auth.authenticate(credentials: credentials)
         return try await members.fetch(
             memberId: memberId,
+            accessToken: authResponse.accessToken,
+            instanceUrl: authResponse.instanceUrl
+        )
+    }
+
+    /// Authenticates with Salesforce and downloads a file
+    /// - Parameters:
+    ///   - credentials: The Salesforce credentials
+    ///   - recordId: The record ID to download the file from
+    /// - Returns: File download response containing file data and metadata
+    /// - Throws: `SalesforceAuthError` or `FileDownloadError` if operation fails
+    public func authenticateAndDownloadFile(credentials: SalesforceCredentials, recordId: String) async throws -> FileDownloadResponse {
+        let authResponse = try await auth.authenticate(credentials: credentials)
+        return try await files.download(
+            recordId: recordId,
             accessToken: authResponse.accessToken,
             instanceUrl: authResponse.instanceUrl
         )
