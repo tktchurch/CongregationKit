@@ -721,13 +721,44 @@ public struct BirthDateInfo: Codable, Equatable, Sendable {
 }
 
 /// Represents a member's photo with extracted URL, alt text, and tags from HTML.
-public struct MemberPhoto: Codable, Equatable, Sendable {
+public struct MemberPhoto: Codable, Equatable, Sendable, SalesforceFileURLRepresentable {
     /// The direct image URL
     public let url: String
     /// The alt text (description) of the image, if available (for WhatsApp images, this is the timestamp as a string)
     public let alt: String?
     /// Tags for the photo (e.g., 'whatsapp' if WhatsApp image)
     public let tags: [String]
+    
+    /// Creates a new MemberPhoto instance
+    /// - Parameters:
+    ///   - url: The direct image URL
+    ///   - alt: The alt text (description) of the image, if available
+    ///   - tags: Tags for the photo (e.g., 'whatsapp' if WhatsApp image)
+    public init(url: String, alt: String?, tags: [String]) {
+        self.url = url
+        self.alt = alt
+        self.tags = tags
+    }
+    
+    /// Whether this is a Salesforce file URL (contains 'file.force.com')
+    public var isSalesforceFileURL: Bool {
+        return url.contains("file.force.com")
+    }
+    
+    /// The extracted record ID (eid) from Salesforce file URLs, if available
+    public var recordId: String? {
+        guard isSalesforceFileURL else { return nil }
+        
+        // Extract eid parameter from Salesforce file URLs
+        // Example: https://thekingstemplechurch.file.force.com/servlet/rtaImage?eid=a0x2w000002jxqn&feoid=Description__c&refid=0EMIg0000008WVM
+        let pattern = #"eid=([a-zA-Z0-9]+)"#
+        if let regex = try? NSRegularExpression(pattern: pattern, options: []),
+           let match = regex.firstMatch(in: url, options: [], range: NSRange(url.startIndex..., in: url)),
+           let eidRange = Range(match.range(at: 1), in: url) {
+            return String(url[eidRange])
+        }
+        return nil
+    }
 }
 
 /// Main struct for member data, representing all Salesforce member fields in a type-safe way.
