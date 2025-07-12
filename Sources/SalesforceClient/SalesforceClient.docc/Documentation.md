@@ -6,8 +6,9 @@ A robust Swift client for Salesforce integration, powering TKT Church and adapta
 
 `SalesforceClient` is a modern, async/await-based Swift client for Salesforce, designed for The King's Temple Church (TKT Church) but extensible for any church or organization. It provides modular API routes, secure authentication, and type-safe models for real-world church data.
 
-- **Modular API Routes:** Access authentication and member management via dedicated protocols and route handlers.
+- **Modular API Routes:** Access authentication, member, seeker, and file management via dedicated protocols and route handlers.
 - **Type-Safe Models:** All data models are designed for clarity, extensibility, and real-world church needs.
+- **File Download Support:** Download files (including images and documents) from Salesforce with full metadata extraction (filename, content type, etc).
 - **Async/Await:** All API calls are async/await and concurrency-safe (`Sendable`).
 - **Production-Ready:** Secure, well-documented, and tested for church-scale data.
 
@@ -76,12 +77,15 @@ let members = try await salesforce.members.fetchAll(
 - Designed for TKT Church, but reusable by any church or organization
 
 ## Topics
+
 ### Creating a Client
 - ``SalesforceClient/init(httpClient:)``
 
 ### Available Services
 - ``SalesforceClient/auth``
 - ``SalesforceClient/members``
+- ``SalesforceClient/seekers``
+- ``SalesforceClient/files``
 
 ### Data Models
 - ``Member``

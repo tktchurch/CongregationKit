@@ -42,7 +42,7 @@ public struct SalesforceFilesRoutesImpl: SalesforceFilesRoutes {
         } else if let contentDocumentIdHeader = response.headers["X-ContentDocumentId"].first {
             contentDocumentId = contentDocumentIdHeader
         }
-        
+
         return try await client.processBinaryResponse(
             response,
             recordId: recordId,

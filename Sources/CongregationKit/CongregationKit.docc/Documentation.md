@@ -4,11 +4,12 @@ A high-level Swift SDK for TKT Church and other churches to integrate with Sales
 
 ## Overview
 
-`CongregationKit` provides a modern, async/await-based interface for accessing and managing church member and seeker data via Salesforce. It is dedicated to The King's Temple Church (TKT Church), but is also modular and extensible for use by other churches or organizations seeking robust, type-safe data models and protocols.
+`CongregationKit` provides a modern, async/await-based interface for accessing and managing church member, seeker, and file data via Salesforce. It is dedicated to The King's Temple Church (TKT Church), but is also modular and extensible for use by other churches or organizations seeking robust, type-safe data models and protocols.
 
-- **Modular Models:** Member and seeker data are split into sub-structs for clarity and extensibility.
+- **Modular Models:** Member, seeker, and file data are split into sub-structs for clarity and extensibility.
 - **Protocols:** All major data domains conform to protocols for type-safe, extensible access.
 - **Field Expansion:** Field expansion lets you fetch only the data you need, improving performance and clarity (for members).
+- **File Management:** Secure file download capabilities with proper metadata extraction.
 - **Async/Await:** All API calls are async/await and concurrency-safe (`Sendable`).
 - **Cross-Platform:** Works on macOS and iOS, and is ready for both server-side (Vapor/Hummingbird) and app use.
 - **Production-Ready:** Secure, well-documented, and tested for real-world church data.
@@ -50,13 +51,17 @@ let seekers = try await congregation.seekers.fetchAll(
     campus: .eastCampus, 
     leadStatus: .attempted
 )
+
+// Download files
+let file = try await congregation.files.download(recordId: "a0x2w000002jxqn")
 ```
 
 ## Key Features
 
 ### Core Functionality
-- Modular, extensible models for member and seeker data
+- Modular, extensible models for member, seeker, and file data
 - Field expansion for efficient member data access
+- Secure file download with metadata extraction
 - Protocol-oriented design for maximum flexibility
 - Full async/await and concurrency safety
 - Designed for TKT Church, but reusable by any church or organization
@@ -64,6 +69,7 @@ let seekers = try await congregation.seekers.fetchAll(
 ### Rich Data Models
 - **Member Management:** Complete member profiles with contact, employment, marital, and discipleship information
 - **Seeker Tracking:** Lead management and follow-up tracking
+- **File Management:** Secure file download with proper content type and filename extraction
 - **Date Intelligence:** Professional birthday and anniversary formatting with age calculations
 - **Spiritual Journey:** Comprehensive discipleship tracking including baptism, courses, and ministry involvement
 
@@ -72,6 +78,7 @@ let seekers = try await congregation.seekers.fetchAll(
 - Type-safe credential management
 - Error handling with localized descriptions
 - Rate limiting support
+- Secure file handling with proper content validation
 
 ## Topics
 
@@ -82,11 +89,13 @@ let seekers = try await congregation.seekers.fetchAll(
 ### Available Services
 - ``CongregationKit/members``
 - ``CongregationKit/seekers``
+- ``CongregationKit/files``
 
 ### Core Data Models
 - ``Member``
 - ``Seeker``
 - ``MemberID``
+- ``FileDownloadResponse``
 
 ### Contact & Personal Information
 - ``ContactInformation``
@@ -142,8 +151,10 @@ let seekers = try await congregation.seekers.fetchAll(
 ### Handlers
 - ``MembersHandler``
 - ``SeekersHandler``
+- ``FilesHandler``
 - ``SalesforceMembersHandler``
 - ``SalesforceSeekersHandler``
+- ``SalesforceFilesHandler``
 
 ### Authentication
 - ``SalesforceCredentials``
@@ -153,6 +164,7 @@ let seekers = try await congregation.seekers.fetchAll(
 ### Errors
 - ``MemberError``
 - ``SeekerError``
+- ``FileDownloadError``
 
 ### Utilities
 - ``MemberExpand``

@@ -29,6 +29,7 @@ import SalesforceClient
 ///
 /// let congregation = CongregationKit(httpClient: httpClient, credentials: credentials)
 /// let members = try await congregation.members.fetchAll()
+/// let file = try await congregation.files.download(recordId: "a0x2w000002jxqn")
 /// ```
 ///
 /// ## Topics
@@ -39,12 +40,15 @@ import SalesforceClient
 ///
 /// ### Available Services
 /// - ``members``
+/// - ``seekers``
+/// - ``files``
 public struct CongregationKit: CongregationKitProtocol {
 
     private let salesforceClient: SalesforceClient
     private let authResponse: SalesforceAuthResponse
     private let membersHandler: MembersHandler
     private let seekersHandler: SeekersHandler
+    private let filesHandler: FilesHandler
 
     /// Creates a new CongregationKit client and authenticates with Salesforce
     /// - Parameters:
@@ -60,6 +64,11 @@ public struct CongregationKit: CongregationKitProtocol {
             instanceUrl: authResponse.instanceUrl
         )
         self.seekersHandler = SalesforceSeekersHandler(
+            salesforceClient: salesforceClient,
+            accessToken: authResponse.accessToken,
+            instanceUrl: authResponse.instanceUrl
+        )
+        self.filesHandler = SalesforceFilesHandler(
             salesforceClient: salesforceClient,
             accessToken: authResponse.accessToken,
             instanceUrl: authResponse.instanceUrl
@@ -83,6 +92,11 @@ public struct CongregationKit: CongregationKitProtocol {
             accessToken: authResponse.accessToken,
             instanceUrl: authResponse.instanceUrl
         )
+        self.filesHandler = SalesforceFilesHandler(
+            salesforceClient: salesforceClient,
+            accessToken: authResponse.accessToken,
+            instanceUrl: authResponse.instanceUrl
+        )
     }
 
     /// The members handler for member operations
@@ -93,5 +107,10 @@ public struct CongregationKit: CongregationKitProtocol {
     /// The seekers handler for seeker operations
     public var seekers: SeekersHandler {
         return seekersHandler
+    }
+
+    /// The files handler for file operations
+    public var files: FilesHandler {
+        return filesHandler
     }
 }

@@ -199,21 +199,6 @@ jobs:
             exit 1
           fi
 
-      # Post PR comment with API changes
-      - name: Comment on PR with API changes
-        if: always()
-        uses: peter-evans/create-or-update-comment@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            ## 🛑 Public API Change Detection Results
-            
-            ${{ steps.process_diff.outputs.diff_comment }}
-            
-            Raw JSON diffs are available as artifacts for detailed inspection (if changes were detected).
-            Please review any API changes to ensure they are intentional. Public API changes may require versioning or additional documentation.
-
       # Fail the build if API changes are detected
       - name: Fail if API changes detected
         if: steps.compare.outputs.has_diff == 'true'
