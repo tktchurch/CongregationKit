@@ -718,6 +718,50 @@ public struct BirthDateInfo: Codable, Equatable, Sendable {
         self.day = components.day ?? 0
         self.dayOfWeek = components.weekday ?? 0
     }
+
+    // MARK: - Custom Codable Implementation
+
+    private enum CodingKeys: String, CodingKey {
+        case date
+        case year
+        case month
+        case day
+        case dayOfWeek
+        case age
+        case shortFormat
+        case usFormat
+        case fullFormat
+        case isThisYear
+        case daysUntilNextBirthday
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let decodedDate = try container.decode(Date.self, forKey: .date)
+        self.date = decodedDate
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month, .day, .weekday], from: decodedDate)
+        self.year = components.year ?? 0
+        self.month = components.month ?? 0
+        self.day = components.day ?? 0
+        self.dayOfWeek = components.weekday ?? 0
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(date, forKey: .date)
+        try container.encode(year, forKey: .year)
+        try container.encode(month, forKey: .month)
+        try container.encode(day, forKey: .day)
+        try container.encode(dayOfWeek, forKey: .dayOfWeek)
+        // Include computed properties in JSON output
+        try container.encode(age, forKey: .age)
+        try container.encode(shortFormat, forKey: .shortFormat)
+        try container.encode(usFormat, forKey: .usFormat)
+        try container.encode(fullFormat, forKey: .fullFormat)
+        try container.encode(isThisYear, forKey: .isThisYear)
+        try container.encode(daysUntilNextBirthday, forKey: .daysUntilNextBirthday)
+    }
 }
 
 /// Represents a member's photo with extracted URL, alt text, and tags from HTML.
@@ -894,5 +938,76 @@ public struct MemberData: MemberDataRepresentable {
         self.spm = spm
         self.attendingService = attendingService
         self.photoRaw = photoRaw
+    }
+}
+
+extension MemberData: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case dateOfBirth
+        case createdDate
+        case lastModifiedDate
+        case title
+        case memberType
+        case bloodGroup
+        case preferredLanguages
+        case attendingCampus
+        case serviceCampus
+        case partOfLifeGroup
+        case status
+        case campus
+        case spm
+        case attendingService
+        case photoRaw
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        // Decode BirthDateInfo and extract the date, or fall back to direct Date decoding, or string date
+        if let birthDateInfo = try? container.decode(BirthDateInfo.self, forKey: .dateOfBirth) {
+            self._dateOfBirth = birthDateInfo.date
+        } else if let date = try? container.decode(Date.self, forKey: .dateOfBirth) {
+            self._dateOfBirth = date
+        } else if let dateString = try? container.decode(String.self, forKey: .dateOfBirth) {
+            // Fallback: parse ISO 8601 date string (e.g., "1990-01-01")
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withFullDate]
+            self._dateOfBirth = formatter.date(from: dateString)
+        } else {
+            self._dateOfBirth = nil
+        }
+        self.createdDate = try container.decodeIfPresent(Date.self, forKey: .createdDate)
+        self.lastModifiedDate = try container.decodeIfPresent(Date.self, forKey: .lastModifiedDate)
+        self.title = try container.decodeIfPresent(MemberTitle.self, forKey: .title)
+        self.memberType = try container.decodeIfPresent(MemberType.self, forKey: .memberType)
+        self.bloodGroup = try container.decodeIfPresent(BloodGroup.self, forKey: .bloodGroup)
+        self.preferredLanguages = try container.decodeIfPresent([PreferredLanguage].self, forKey: .preferredLanguages)
+        self.attendingCampus = try container.decodeIfPresent(AttendingCampus.self, forKey: .attendingCampus)
+        self.serviceCampus = try container.decodeIfPresent(ServiceCampus.self, forKey: .serviceCampus)
+        self.partOfLifeGroup = try container.decodeIfPresent(Bool.self, forKey: .partOfLifeGroup)
+        self.status = try container.decodeIfPresent(MemberStatus.self, forKey: .status)
+        self.campus = try container.decodeIfPresent(Campus.self, forKey: .campus)
+        self.spm = try container.decodeIfPresent(Bool.self, forKey: .spm)
+        self.attendingService = try container.decodeIfPresent(AttendingService.self, forKey: .attendingService)
+        self.photoRaw = try container.decodeIfPresent(String.self, forKey: .photoRaw)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        // Encode as BirthDateInfo if date exists, providing rich birthday information
+        try container.encodeIfPresent(dateOfBirth, forKey: .dateOfBirth)
+        try container.encodeIfPresent(createdDate, forKey: .createdDate)
+        try container.encodeIfPresent(lastModifiedDate, forKey: .lastModifiedDate)
+        try container.encodeIfPresent(title, forKey: .title)
+        try container.encodeIfPresent(memberType, forKey: .memberType)
+        try container.encodeIfPresent(bloodGroup, forKey: .bloodGroup)
+        try container.encodeIfPresent(preferredLanguages, forKey: .preferredLanguages)
+        try container.encodeIfPresent(attendingCampus, forKey: .attendingCampus)
+        try container.encodeIfPresent(serviceCampus, forKey: .serviceCampus)
+        try container.encodeIfPresent(partOfLifeGroup, forKey: .partOfLifeGroup)
+        try container.encodeIfPresent(status, forKey: .status)
+        try container.encodeIfPresent(campus, forKey: .campus)
+        try container.encodeIfPresent(spm, forKey: .spm)
+        try container.encodeIfPresent(attendingService, forKey: .attendingService)
+        try container.encodeIfPresent(photoRaw, forKey: .photoRaw)
     }
 }
