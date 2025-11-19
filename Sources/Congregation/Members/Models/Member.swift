@@ -610,6 +610,49 @@ extension Member {
             photoRaw: photoRaw
         )
     }
+
+    public func encode(to encoder: Encoder) throws {
+        enum CodingKeys: String, CodingKey {
+            case id, memberId, createdDate, lastModifiedDate, memberName, firstName, middleName, lastName,
+                gender, phone, email, lifeGroupName, area, address, dateOfBirth,
+                title, memberType, bloodGroup, preferredLanguages, attendingCampus, serviceCampus,
+                partOfLifeGroup, status, campus, spm, attendingService,
+                contactInformation, employmentInformation, maritalInformation, discipleshipInformation, photoRaw
+        }
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(id, forKey: .id)
+        try container.encodeIfPresent(memberId, forKey: .memberId)
+        try container.encodeIfPresent(createdDate, forKey: .createdDate)
+        try container.encodeIfPresent(lastModifiedDate, forKey: .lastModifiedDate)
+        try container.encodeIfPresent(memberName, forKey: .memberName)
+        try container.encodeIfPresent(firstName, forKey: .firstName)
+        try container.encodeIfPresent(middleName, forKey: .middleName)
+        try container.encodeIfPresent(lastName, forKey: .lastName)
+        try container.encodeIfPresent(gender, forKey: .gender)
+        try container.encodeIfPresent(phone, forKey: .phone)
+        try container.encodeIfPresent(email, forKey: .email)
+        try container.encodeIfPresent(lifeGroupName, forKey: .lifeGroupName)
+        try container.encodeIfPresent(area, forKey: .area)
+        try container.encodeIfPresent(address, forKey: .address)
+        // Encode as BirthDateInfo if date exists, providing rich birthday information
+        try container.encodeIfPresent(dateOfBirth, forKey: .dateOfBirth)
+        try container.encodeIfPresent(title, forKey: .title)
+        try container.encodeIfPresent(memberType, forKey: .memberType)
+        try container.encodeIfPresent(bloodGroup, forKey: .bloodGroup)
+        try container.encodeIfPresent(preferredLanguages, forKey: .preferredLanguages)
+        try container.encodeIfPresent(attendingCampus, forKey: .attendingCampus)
+        try container.encodeIfPresent(serviceCampus, forKey: .serviceCampus)
+        try container.encodeIfPresent(partOfLifeGroup, forKey: .partOfLifeGroup)
+        try container.encodeIfPresent(status, forKey: .status)
+        try container.encodeIfPresent(campus, forKey: .campus)
+        try container.encodeIfPresent(spm, forKey: .spm)
+        try container.encodeIfPresent(attendingService, forKey: .attendingService)
+        try container.encodeIfPresent(contactInformation, forKey: .contactInformation)
+        try container.encodeIfPresent(employmentInformation, forKey: .employmentInformation)
+        try container.encodeIfPresent(maritalInformation, forKey: .maritalInformation)
+        try container.encodeIfPresent(discipleshipInformation, forKey: .discipleshipInformation)
+        try container.encodeIfPresent(photoRaw, forKey: .photoRaw)
+    }
 }
 
 /// A type-safe identifier for church members that validates and normalizes member IDs from Salesforce.
