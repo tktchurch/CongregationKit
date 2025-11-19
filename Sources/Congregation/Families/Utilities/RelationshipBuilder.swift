@@ -79,7 +79,8 @@ public enum RelationshipBuilder {
         let uniqueSuggestions = removeDuplicates(suggestions)
 
         // Filter by minimum confidence and sort
-        let filtered = uniqueSuggestions
+        let filtered =
+            uniqueSuggestions
             .filter { $0.confidence >= options.minimumConfidence }
             .sorted { $0.confidence > $1.confidence }
 

@@ -92,17 +92,17 @@ public enum RelationshipType: String, Codable, CaseIterable, Sendable {
         case .sibling: return .sibling
         case .grandparent: return .grandchild
         case .grandchild: return .grandparent
-        case .uncle: return .nephew // or niece, context-dependent
-        case .aunt: return .niece // or nephew, context-dependent
-        case .nephew: return .uncle // or aunt, context-dependent
-        case .niece: return .aunt // or uncle, context-dependent
+        case .uncle: return .nephew  // or niece, context-dependent
+        case .aunt: return .niece  // or nephew, context-dependent
+        case .nephew: return .uncle  // or aunt, context-dependent
+        case .niece: return .aunt  // or uncle, context-dependent
         case .cousin: return .cousin
-        case .fatherInLaw: return .sonInLaw // or daughterInLaw
-        case .motherInLaw: return .daughterInLaw // or sonInLaw
-        case .sonInLaw: return .fatherInLaw // or motherInLaw
-        case .daughterInLaw: return .motherInLaw // or fatherInLaw
-        case .brotherInLaw: return .brotherInLaw // or sisterInLaw
-        case .sisterInLaw: return .sisterInLaw // or brotherInLaw
+        case .fatherInLaw: return .sonInLaw  // or daughterInLaw
+        case .motherInLaw: return .daughterInLaw  // or sonInLaw
+        case .sonInLaw: return .fatherInLaw  // or motherInLaw
+        case .daughterInLaw: return .motherInLaw  // or fatherInLaw
+        case .brotherInLaw: return .brotherInLaw  // or sisterInLaw
+        case .sisterInLaw: return .sisterInLaw  // or brotherInLaw
         case .guardian: return .ward
         case .ward: return .guardian
         case .mentor: return .mentee
@@ -125,15 +125,15 @@ public enum RelationshipType: String, Codable, CaseIterable, Sendable {
         case .spouse:
             return .marriage
         case .parent, .child, .sibling, .grandparent, .grandchild,
-             .uncle, .aunt, .nephew, .niece, .cousin,
-             .fatherInLaw, .motherInLaw, .sonInLaw, .daughterInLaw,
-             .brotherInLaw, .sisterInLaw, .guardian, .ward:
+            .uncle, .aunt, .nephew, .niece, .cousin,
+            .fatherInLaw, .motherInLaw, .sonInLaw, .daughterInLaw,
+            .brotherInLaw, .sisterInLaw, .guardian, .ward:
             return .family
         case .mentor, .mentee, .discipler, .disciple,
-             .prayerPartner, .accountabilityPartner:
+            .prayerPartner, .accountabilityPartner:
             return .spiritual
         case .lifeGroupLeader, .lifeGroupMember,
-             .ministryLeader, .ministryTeamMember:
+            .ministryLeader, .ministryTeamMember:
             return .ministry
         case .other:
             return .other

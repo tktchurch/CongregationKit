@@ -29,7 +29,8 @@ public protocol RelationshipQueryable {
 extension RelationshipQueryable where Self == Member {
     public func getParents(from relationships: [MemberRelationship], members: [Member]) -> [Member] {
         guard let myId = self.memberId else { return [] }
-        let parentIds = relationships
+        let parentIds =
+            relationships
             .filter { $0.targetMemberId == myId && $0.relationshipType == .parent }
             .map { $0.sourceMemberId }
         return members.filter { member in
@@ -40,7 +41,8 @@ extension RelationshipQueryable where Self == Member {
 
     public func getChildren(from relationships: [MemberRelationship], members: [Member]) -> [Member] {
         guard let myId = self.memberId else { return [] }
-        let childIds = relationships
+        let childIds =
+            relationships
             .filter { $0.sourceMemberId == myId && $0.relationshipType == .parent }
             .map { $0.targetMemberId }
         return members.filter { member in
@@ -51,7 +53,8 @@ extension RelationshipQueryable where Self == Member {
 
     public func getSiblings(from relationships: [MemberRelationship], members: [Member]) -> [Member] {
         guard let myId = self.memberId else { return [] }
-        let siblingIds = relationships
+        let siblingIds =
+            relationships
             .filter {
                 ($0.sourceMemberId == myId || $0.targetMemberId == myId)
                     && $0.relationshipType == .sibling
@@ -66,7 +69,8 @@ extension RelationshipQueryable where Self == Member {
 
     public func getSpouse(from relationships: [MemberRelationship], members: [Member]) -> Member? {
         guard let myId = self.memberId else { return nil }
-        let spouseId = relationships
+        let spouseId =
+            relationships
             .first {
                 ($0.sourceMemberId == myId || $0.targetMemberId == myId)
                     && $0.relationshipType == .spouse
@@ -84,7 +88,8 @@ extension RelationshipQueryable where Self == Member {
         members: [Member]
     ) -> [Member] {
         guard let myId = self.memberId else { return [] }
-        let relativeIds = relationships
+        let relativeIds =
+            relationships
             .filter {
                 ($0.sourceMemberId == myId || $0.targetMemberId == myId)
                     && $0.relationshipType == type

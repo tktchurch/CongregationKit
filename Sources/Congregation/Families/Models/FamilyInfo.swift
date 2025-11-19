@@ -72,7 +72,7 @@ public struct FamilyInfo: Codable, Sendable {
     /// Number of adults (18+) in the family.
     public var adultCount: Int {
         members.filter { member in
-            guard let birthInfo = member.dateOfBirth else { return true } // Assume adult if unknown
+            guard let birthInfo = member.dateOfBirth else { return true }  // Assume adult if unknown
             return birthInfo.age >= 18
         }.count
     }

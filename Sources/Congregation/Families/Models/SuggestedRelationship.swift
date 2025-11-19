@@ -68,7 +68,7 @@ public struct SuggestedRelationship: Codable, Equatable, Sendable {
         self.sourceMemberId = sourceMemberId
         self.targetMemberId = targetMemberId
         self.suggestedType = suggestedType
-        self.confidence = min(1.0, max(0.0, confidence)) // Clamp to 0.0-1.0
+        self.confidence = min(1.0, max(0.0, confidence))  // Clamp to 0.0-1.0
         self.reason = reason
         self.additionalContext = additionalContext
     }
