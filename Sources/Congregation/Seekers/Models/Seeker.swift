@@ -250,6 +250,12 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
     /// Important for family ministry and pastoral care planning.
     public let maritalStatus: MaritalStatus?
 
+    /// The seeker's preferred language, if available.
+    ///
+    /// Used for appropriate ministry approaches and communication.
+    /// Important for language-specific ministry and outreach.
+    public let preferredLanguage: PreferredLanguage?
+
     /// The date the seeker was created, if available.
     ///
     /// Used for follow-up timing, lead aging analysis, and
@@ -281,6 +287,7 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
         area: String? = nil,
         typeOfEntry: TypeOfEntry? = nil,
         maritalStatus: MaritalStatus? = nil,
+        preferredLanguage: PreferredLanguage? = nil,
         createdDate: Date? = nil
     ) {
         self.id = id
@@ -312,6 +319,7 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
         self.area = area
         self.typeOfEntry = typeOfEntry
         self.maritalStatus = maritalStatus
+        self.preferredLanguage = preferredLanguage
         self.createdDate = createdDate
     }
 
@@ -333,6 +341,7 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
         case leadStatus
         case typeOfEntry
         case maritalStatus
+        case preferredLanguage
         case createdDate
     }
 
@@ -428,6 +437,15 @@ extension Seeker: Codable {
             return nil
         }()
 
+        let preferredLanguage: PreferredLanguage? = {
+            if let rawValue = try? container.decodeIfPresent(String.self, forKey: .preferredLanguage),
+                let value = PreferredLanguage(rawValue: rawValue)
+            {
+                return value
+            }
+            return nil
+        }()
+
         self.init(
             id: id,
             lead: lead,
@@ -439,6 +457,7 @@ extension Seeker: Codable {
             area: area,
             typeOfEntry: typeOfEntry,
             maritalStatus: maritalStatus,
+            preferredLanguage: preferredLanguage,
             createdDate: createdDate
         )
     }
@@ -456,6 +475,7 @@ extension Seeker: Codable {
         try container.encodeIfPresent(area, forKey: .area)
         try container.encodeIfPresent(typeOfEntry, forKey: .typeOfEntry)
         try container.encodeIfPresent(maritalStatus, forKey: .maritalStatus)
+        try container.encodeIfPresent(preferredLanguage, forKey: .preferredLanguage)
         try container.encodeIfPresent(createdDate, forKey: .createdDate)
     }
 }

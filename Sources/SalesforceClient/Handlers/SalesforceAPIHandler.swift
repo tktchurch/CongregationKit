@@ -122,6 +122,7 @@ public actor SalesforceAPIHandler {
     public func processResponse<T: Codable>(_ response: HTTPClientResponse, as type: T.Type) async throws -> T {
         guard response.status == .ok else {
             let body = try await response.body.collect(upTo: 1024 * 1024)
+            print(String(buffer: body))
             let errorMessage = String(buffer: body)
             throw SalesforceAuthError.serverError("HTTP \(response.status.code): \(errorMessage)")
         }

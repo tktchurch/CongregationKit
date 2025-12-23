@@ -299,4 +299,64 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
         }
         return seeker
     }
+
+    /// Creates a new seeker in Salesforce.
+    /// - Parameters:
+    ///   - seeker: The seeker to create
+    ///   - accessToken: The OAuth access token
+    ///   - instanceUrl: The Salesforce instance URL
+    /// - Returns: SeekerResponse containing the created seeker
+    /// - Throws: `SeekerError` if creation fails
+    public func create(_ seeker: Seeker, accessToken: String, instanceUrl: String) async throws -> SeekerResponse {
+        let seekerURL = "\(instanceUrl)\(SalesforceAPIConstants.seekerEndpointV2)/create"
+        let requestHeaders = SalesforceAPIUtil.convertToHTTPHeaders([
+            "Authorization": "Bearer \(accessToken)",
+            "Content-Type": "application/json",
+        ])
+
+        // Transform Seeker into SeekerCreateRequest
+        let createRequest = try SeekerCreateRequest(from: seeker)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        let requestBody = try encoder.encode(createRequest)
+
+        // Log the request body for debugging
+        print("[DEBUG] POST URL: \(seekerURL)")
+        if let jsonString = String(data: requestBody, encoding: .utf8) {
+            print("[DEBUG] Request JSON being sent to Salesforce:")
+            print(jsonString)
+        }
+
+        let response = try await client.sendRequest(
+            method: .POST,
+            path: seekerURL,
+            body: .data(requestBody),
+            headers: requestHeaders
+        )
+
+        // Collect response body once for both logging and processing
+        print("[DEBUG] Response status: \(response.status)")
+        let responseBodyData = try await response.body.collect(upTo: 1024 * 1024) // 1MB max
+        let responseString = String(buffer: responseBodyData)
+        print("[DEBUG] Raw response body:")
+        print(responseString)
+
+        // Decode the Salesforce response from the collected data
+        let decoder = JSONDecoder()
+        let data = Data(buffer: responseBodyData)
+
+        // Check if response is an error
+        if response.status.code >= 400 {
+            struct ServerError: Error, LocalizedError {
+                let message: String
+                var errorDescription: String? { message }
+            }
+            throw SeekerError.fetchFailed(ServerError(message: "HTTP \(response.status.code): \(responseString)"))
+        }
+
+        let createResponse = try decoder.decode(SeekerCreateResponse.self, from: data)
+
+        // Transform the response into a SeekerResponse
+        return createResponse.toSeekerResponse()
+    }
 }

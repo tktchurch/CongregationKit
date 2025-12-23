@@ -189,6 +189,15 @@ public protocol SalesforceSeekerRoutes: SalesforceAPIRoute {
         leadId: String?,
         contactNumber: String?
     ) async throws -> SeekerResponse
+
+    /// Creates a new seeker in Salesforce.
+    /// - Parameters:
+    ///   - seeker: The seeker to create
+    ///   - accessToken: The OAuth access token
+    ///   - instanceUrl: The Salesforce instance URL
+    /// - Returns: SeekerResponse containing the created seeker
+    /// - Throws: `SeekerError` if creation fails
+    func create(_ seeker: Seeker, accessToken: String, instanceUrl: String) async throws -> SeekerResponse
 }
 
 /// Protocol for Salesforce files routes
