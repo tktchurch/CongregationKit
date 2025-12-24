@@ -316,16 +316,20 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
 
         // Transform Seeker into SeekerCreateRequest
         let createRequest = try SeekerCreateRequest(from: seeker)
+
+        // Wrap the request in a "request" key as Salesforce expects
+        let wrappedRequest = ["request": createRequest]
+
         let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
-        let requestBody = try encoder.encode(createRequest)
+        // encoder.outputFormatting = .prettyPrinted
+        let requestBody = try encoder.encode(wrappedRequest)
 
         // Log the request body for debugging
-        print("[DEBUG] POST URL: \(seekerURL)")
-        if let jsonString = String(data: requestBody, encoding: .utf8) {
-            print("[DEBUG] Request JSON being sent to Salesforce:")
-            print(jsonString)
-        }
+        // print("[DEBUG] POST URL: \(seekerURL)")
+        // if let jsonString = String(data: requestBody, encoding: .utf8) {
+        //     print("[DEBUG] Request JSON being sent to Salesforce:")
+        //     print(jsonString)
+        // }
 
         let response = try await client.sendRequest(
             method: .POST,
@@ -335,11 +339,11 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
         )
 
         // Collect response body once for both logging and processing
-        print("[DEBUG] Response status: \(response.status)")
+        // print("[DEBUG] Response status: \(response.status)")
         let responseBodyData = try await response.body.collect(upTo: 1024 * 1024) // 1MB max
         let responseString = String(buffer: responseBodyData)
-        print("[DEBUG] Raw response body:")
-        print(responseString)
+        // print("[DEBUG] Raw response body:")
+        // print(responseString)
 
         // Decode the Salesforce response from the collected data
         let decoder = JSONDecoder()

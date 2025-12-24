@@ -87,11 +87,11 @@ actor SeekersHandlerTests {
                 if response.seekers.isEmpty || nextPageToken == nil { break }
                 pageNumber += 1
             } catch {
-                print("[ERROR] Decoding or API error on page \(pageNumber):", error)
+                // print("[ERROR] Decoding or API error on page \(pageNumber):", error)
                 throw error
             }
         } while allSeekers.count < (totalRecords ?? Int.max)
-        print("[DEBUG] Total seekers fetched: \(allSeekers.count), totalRecords: \(String(describing: totalRecords))")
+        // print("[DEBUG] Total seekers fetched: \(allSeekers.count), totalRecords: \(String(describing: totalRecords))")
     }
 
     @Test("Create a new seeker")
@@ -106,9 +106,9 @@ actor SeekersHandlerTests {
             dateOfBirth: nil,
             ageGroup: "30",
             area: "Hyderabad",
-            typeOfEntry: .newVisitor,
-            maritalStatus: .unmarried,
-            preferredLanguage: .english,
+            typeOfEntry: .comingBack,
+            maritalStatus: .engaged,
+            preferredLanguage: .telugu,
             createdDate: nil
         )
 
@@ -120,12 +120,12 @@ actor SeekersHandlerTests {
             #expect(response.seekers.count > 0)
 
             if let createdSeeker = response.seekers.first {
-                print("[DEBUG] Created seeker with ID: \(createdSeeker.id ?? "nil")")
+                // print("[DEBUG] Created seeker with ID: \(createdSeeker.id ?? "nil")")
                 #expect(createdSeeker.fullName == "Test User Swift")
                 #expect(createdSeeker.phone == "9876543210")
             }
         } catch {
-            print("[ERROR] Failed to create seeker:", error)
+            // print("[ERROR] Failed to create seeker:", error)
             throw error
         }
     }
@@ -156,12 +156,12 @@ actor SeekersHandlerTests {
             #expect(response.seekers.count > 0)
 
             if let createdSeeker = response.seekers.first {
-                print("[DEBUG] Created seeker with ID: \(createdSeeker.id ?? "nil")")
+                // print("[DEBUG] Created seeker with ID: \(createdSeeker.id ?? "nil")")
                 #expect(createdSeeker.fullName == "Jane Smith Swift")
                 #expect(createdSeeker.email == "jane.swift@example.com")
             }
         } catch {
-            print("[ERROR] Failed to create seeker with optional fields:", error)
+            // print("[ERROR] Failed to create seeker with optional fields:", error)
             throw error
         }
     }

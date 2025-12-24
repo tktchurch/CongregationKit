@@ -32,7 +32,7 @@ public struct SeekerCreateRequest: Codable, Sendable {
     /// Creates a SeekerCreateRequest from a Seeker instance.
     ///
     /// - Parameter seeker: The seeker to create a request from
-    /// - Throws: SeekerError if required fields are missing
+    /// - Throws: SeekerError if required fields are missing or invalid
     public init(from seeker: Seeker) throws {
         guard let typeOfEntry = seeker.typeOfEntry?.rawValue else {
             throw SeekerError.invalidSeekerData
@@ -48,9 +48,17 @@ public struct SeekerCreateRequest: Codable, Sendable {
             throw SeekerError.invalidSeekerData
         }
 
-        guard let maritalStatus = seeker.maritalStatus?.rawValue else {
+        guard let maritalStatusEnum = seeker.maritalStatus else {
             throw SeekerError.invalidSeekerData
         }
+
+        // Validate marital status for Salesforce seeker picklist
+        // Valid values: Married, Separated, Widowed, Unmarried, Engaged
+        guard maritalStatusEnum.isValidForSeeker else {
+            throw SeekerError.invalidMaritalStatus(maritalStatusEnum.rawValue)
+        }
+
+        let maritalStatus = maritalStatusEnum.rawValue
 
         // Convert age from Int or ageGroup string
         let ageString: String
@@ -92,7 +100,7 @@ public struct SeekerCreateResponse: Codable, Sendable {
                 lead: Lead(id: nil, status: dto.leadStatus),
                 fullName: dto.nameLocal,
                 email: dto.emailId,
-                phone: dto.contactNumberMobile,
+                phone: dto.phoneNumber,
                 dateOfBirth: nil,
                 ageGroup: dto.age,
                 area: dto.presentResidingArea,
@@ -105,4 +113,18 @@ public struct SeekerCreateResponse: Codable, Sendable {
             return SeekerResponse(errorMessage: message)
         }
     }
+}
+
+public struct SeekerCreateDTO: Codable, Sendable {
+    public let id: String
+    public let nameLocal: String?
+    public let phoneNumber: String?
+    public let age: String?  // note: String, not Int
+    public let preferredLanguage: PreferredLanguage?
+    public let maritalStatus: MaritalStatus?
+    public let presentResidingArea: String?
+    public let comments: String?
+    public let attendedCampus: Campus?
+    public let emailId: String?
+    public let leadStatus: LeadStatus?
 }

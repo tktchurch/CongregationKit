@@ -559,6 +559,39 @@ public struct Lead: Codable, Sendable, Equatable {
     }
 }
 
+/// Extension to provide seeker-specific validation for MaritalStatus
+extension MaritalStatus {
+    /// Returns true if this marital status is valid for Salesforce seeker creation.
+    ///
+    /// Valid values for seekers: Married, Separated, Widowed, Unmarried, Engaged
+    ///
+    /// **Important:** Do NOT use `.single` for seekers - use `.unmarried` instead.
+    /// The `.single` value will cause Salesforce API errors when creating seekers.
+    public var isValidForSeeker: Bool {
+        switch self {
+        case .married, .separated, .widowed, .unmarried, .engaged:
+            return true
+        case .single, .divorced, .notApplicable, .other:
+            return false
+        }
+    }
+
+    /// Returns a seeker-friendly marital status, converting `.single` to `.unmarried` automatically.
+    ///
+    /// Use this property when creating seekers to ensure compatibility with Salesforce picklist values.
+    ///
+    /// **Warning:** Using `.single` directly for seeker creation will fail. Always use this property
+    /// or explicitly use `.unmarried` instead of `.single`.
+    public var seekerCompatible: MaritalStatus {
+        switch self {
+        case .single:
+            return .unmarried
+        default:
+            return self
+        }
+    }
+}
+
 /// Represents the status of a lead (e.g., Attempted, Follow-up, Converted).
 public enum LeadStatus: String, Codable, CaseIterable, Sendable {
     /// The lead was attempted.
