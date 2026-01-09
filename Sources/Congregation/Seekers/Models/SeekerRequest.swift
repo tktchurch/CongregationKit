@@ -83,23 +83,29 @@ public struct SeekerCreateRequest: Codable, Sendable {
     }
     
     /// Extracts a representative age number from an age group string.
-    /// - Parameter ageGroup: The age group string (e.g., "18-25", "26-35", "56+")
+    /// - Parameter ageGroup: The age group string (e.g., "18-25", "26-35", "56+", "ABOVE 45")
     /// - Returns: A string representing a numeric age for Salesforce
     private static func extractAgeFromAgeGroup(_ ageGroup: String) -> String {
-        // Handle age range patterns like "18-25", "26-35", etc.
+        // Handle age range patterns like "18-25", "26-35", etc. - keep as-is
         if ageGroup.contains("-") {
             let components = ageGroup.split(separator: "-")
-            if let lowerBound = components.first, let lowerAge = Int(lowerBound) {
-                return String(lowerAge)
+            if let lowerBound = components.first, let _ = Int(lowerBound),
+               let upperBound = components.last, let _ = Int(upperBound) {
+                return ageGroup // Return the original range format
             }
         }
         
-        // Handle age patterns like "56+" by extracting the number
+        // Handle age patterns like "56+" - keep as-is
         if ageGroup.contains("+") {
             let numericPart = ageGroup.replacingOccurrences(of: "+", with: "")
-            if let age = Int(numericPart) {
-                return String(age)
+            if let _ = Int(numericPart) {
+                return ageGroup // Return the original format with +
             }
+        }
+        
+        // Handle text patterns like "ABOVE 45" - keep as-is
+        if ageGroup.uppercased().contains("ABOVE") {
+            return ageGroup // Return the original text format
         }
         
         // Try to extract any number from the string
