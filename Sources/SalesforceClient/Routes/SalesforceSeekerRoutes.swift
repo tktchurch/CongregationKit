@@ -338,29 +338,13 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
             headers: requestHeaders
         )
 
-        // Collect response body once for both logging and processing
-        // print("[DEBUG] Response status: \(response.status)")
-        let responseBodyData = try await response.body.collect(upTo: 1024 * 1024) // 1MB max
-        let responseString = String(buffer: responseBodyData)
-        // print("[DEBUG] Raw response body:")
-        // print(responseString)
-
-        // Decode the Salesforce response from the collected data
-        let decoder = JSONDecoder()
-        let data = Data(buffer: responseBodyData)
-
-        // Check if response is an error
-        if response.status.code >= 400 {
-            struct ServerError: Error, LocalizedError {
-                let message: String
-                var errorDescription: String? { message }
-            }
-            throw SeekerError.fetchFailed(ServerError(message: "HTTP \(response.status.code): \(responseString)"))
+        do {
+            let createResponse = try await client.processResponse(response, as: SeekerCreateResponse.self)
+            return createResponse.toSeekerResponse()
+        } catch let error as SalesforceAuthError {
+            throw SeekerError.fetchFailed(error)
+        } catch {
+            throw SeekerError.fetchFailed(error)
         }
-
-        let createResponse = try decoder.decode(SeekerCreateResponse.self, from: data)
-
-        // Transform the response into a SeekerResponse
-        return createResponse.toSeekerResponse()
     }
 }
