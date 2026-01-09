@@ -316,6 +316,12 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
 
         // Transform Seeker into SeekerCreateRequest
         let createRequest = try SeekerCreateRequest(from: seeker)
+        print("[DEBUG] SalesforceSeekerRoutes.create() called")
+        print("[DEBUG] seekerURL: \(seekerURL)")
+        print("[DEBUG] original seeker.id: \(seeker.id ?? "nil")")
+        print("[DEBUG] original seeker.fullName: \(seeker.fullName ?? "nil")")
+        print("[DEBUG] original seeker.email: \(seeker.email ?? "nil")")
+        print("[DEBUG] original seeker.phone: \(seeker.phone ?? "nil")")
 
         // Wrap the request in a "request" key as Salesforce expects
         let wrappedRequest = ["request": createRequest]
@@ -325,11 +331,11 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
         let requestBody = try encoder.encode(wrappedRequest)
 
         // Log the request body for debugging
-        // print("[DEBUG] POST URL: \(seekerURL)")
-        // if let jsonString = String(data: requestBody, encoding: .utf8) {
-        //     print("[DEBUG] Request JSON being sent to Salesforce:")
-        //     print(jsonString)
-        // }
+        print("[DEBUG] POST URL: \(seekerURL)")
+        if let jsonString = String(data: requestBody, encoding: .utf8) {
+            print("[DEBUG] Request JSON being sent to Salesforce:")
+            print(jsonString)
+        }
 
         let response = try await client.sendRequest(
             method: .POST,
@@ -338,12 +344,20 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
             headers: requestHeaders
         )
 
+        print("[DEBUG] Received response from Salesforce")
+        print("[DEBUG] Response status: \(response.status)")
+        
         do {
             let createResponse = try await client.processResponse(response, as: SeekerCreateResponse.self)
-            return createResponse.toSeekerResponse()
+            print("[DEBUG] Successfully decoded SeekerCreateResponse")
+            let seekerResponse = createResponse.toSeekerResponse()
+            print("[DEBUG] Successfully transformed to SeekerResponse")
+            return seekerResponse
         } catch let error as SalesforceAuthError {
+            print("[DEBUG] SalesforceAuthError caught: \(error)")
             throw SeekerError.fetchFailed(error)
         } catch {
+            print("[DEBUG] Generic error caught: \(error)")
             throw SeekerError.fetchFailed(error)
         }
     }

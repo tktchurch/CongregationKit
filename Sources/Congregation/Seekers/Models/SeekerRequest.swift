@@ -94,22 +94,47 @@ public struct SeekerCreateResponse: Codable, Sendable {
 
     /// Transforms this response into a SeekerResponse with a full Seeker object.
     public func toSeekerResponse() -> SeekerResponse {
+        print("[DEBUG] SeekerCreateResponse.toSeekerResponse() called")
+        print("[DEBUG] success: \(success)")
+        print("[DEBUG] message: \(message)")
+        print("[DEBUG] seeker: \(seeker != nil ? "present" : "nil")")
+        
         if success, let dto = seeker {
+            print("[DEBUG] Processing seeker DTO")
+            print("[DEBUG] dto.id: \(dto.id)")
+            print("[DEBUG] dto.name: \(dto.name ?? "nil")")
+            print("[DEBUG] dto.nameLocal: \(dto.nameLocal ?? "nil")")
+            print("[DEBUG] dto.leadId: \(dto.leadId ?? "nil")")
+            print("[DEBUG] dto.leadStatus: \(dto.leadStatus?.rawValue ?? "nil")")
+            print("[DEBUG] dto.phoneNumber: \(dto.phoneNumber ?? "nil")")
+            print("[DEBUG] dto.emailId: \(dto.emailId ?? "nil")")
+            print("[DEBUG] dto.age: \(dto.age ?? "nil")")
+            print("[DEBUG] dto.typeOfEntry: \(dto.typeOfEntry ?? "nil")")
+            print("[DEBUG] dto.maritalStatus: \(dto.maritalStatus?.rawValue ?? "nil")")
+            print("[DEBUG] dto.presentResidingArea: \(dto.presentResidingArea ?? "nil")")
+            print("[DEBUG] dto.preferredLanguage: \(dto.preferredLanguage?.rawValue ?? "nil")")
+            print("[DEBUG] dto.createdDate: \(dto.createdDate ?? "nil")")
+            
             let dateFormatter = ISO8601DateFormatter()
             let createdDate = dto.createdDate != nil ? dateFormatter.date(from: dto.createdDate!) : nil
+            print("[DEBUG] parsed createdDate: \(createdDate?.description ?? "nil")")
             
             let typeOfEntry = dto.typeOfEntry != nil ? TypeOfEntry(rawValue: dto.typeOfEntry!) : nil
+            print("[DEBUG] parsed typeOfEntry: \(typeOfEntry?.rawValue ?? "nil")")
             
             // Handle lead creation - only create lead if we have meaningful data
             let lead: Lead?
             if dto.leadId != nil || dto.leadStatus != nil {
                 lead = Lead(id: dto.leadId, status: dto.leadStatus)
+                print("[DEBUG] created lead with id: \(dto.leadId ?? "nil"), status: \(dto.leadStatus?.rawValue ?? "nil")")
             } else {
                 lead = nil
+                print("[DEBUG] lead is nil - no leadId or leadStatus")
             }
             
             // Use nameLocal if available, fallback to name
             let fullName = dto.nameLocal ?? dto.name
+            print("[DEBUG] selected fullName: \(fullName ?? "nil")")
             
             let seeker = Seeker(
                 id: dto.id,
@@ -125,8 +150,26 @@ public struct SeekerCreateResponse: Codable, Sendable {
                 preferredLanguage: dto.preferredLanguage,
                 createdDate: createdDate
             )
-            return SeekerResponse(seekers: [seeker])
+            
+            print("[DEBUG] Successfully created Seeker object")
+            print("[DEBUG] seeker.id: \(seeker.id ?? "nil")")
+            print("[DEBUG] seeker.fullName: \(seeker.fullName ?? "nil")")
+            print("[DEBUG] seeker.lead?.id: \(seeker.lead?.id ?? "nil")")
+            print("[DEBUG] seeker.lead?.status: \(seeker.lead?.status?.rawValue ?? "nil")")
+            print("[DEBUG] seeker.email: \(seeker.email ?? "nil")")
+            print("[DEBUG] seeker.phone: \(seeker.phone ?? "nil")")
+            print("[DEBUG] seeker.ageGroup: \(seeker.ageGroup ?? "nil")")
+            print("[DEBUG] seeker.area: \(seeker.area ?? "nil")")
+            print("[DEBUG] seeker.typeOfEntry: \(seeker.typeOfEntry?.rawValue ?? "nil")")
+            print("[DEBUG] seeker.maritalStatus: \(seeker.maritalStatus?.rawValue ?? "nil")")
+            print("[DEBUG] seeker.preferredLanguage: \(seeker.preferredLanguage?.rawValue ?? "nil")")
+            print("[DEBUG] seeker.createdDate: \(seeker.createdDate?.description ?? "nil")")
+            
+            let response = SeekerResponse(seekers: [seeker])
+            print("[DEBUG] Returning SeekerResponse with \(response.seekers.count) seekers")
+            return response
         } else {
+            print("[DEBUG] Failed to process response - success: \(success), seeker: \(seeker != nil)")
             return SeekerResponse(errorMessage: message)
         }
     }
