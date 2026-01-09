@@ -65,7 +65,7 @@ public struct SeekerCreateRequest: Codable, Sendable {
         if let age = seeker.age {
             ageString = String(age)
         } else if let ageGroup = seeker.ageGroup {
-            ageString = Self.extractAgeFromAgeGroup(ageGroup)
+            ageString = ageGroup
         } else {
             throw SeekerError.invalidSeekerData
         }
@@ -80,44 +80,6 @@ public struct SeekerCreateRequest: Codable, Sendable {
         self.comments = nil
         self.attendedCampus = nil
         self.emailId = seeker.email
-    }
-    
-    /// Extracts a representative age number from an age group string.
-    /// - Parameter ageGroup: The age group string (e.g., "18-25", "26-35", "56+", "ABOVE 45")
-    /// - Returns: A string representing a numeric age for Salesforce
-    private static func extractAgeFromAgeGroup(_ ageGroup: String) -> String {
-        // Handle age range patterns like "18-25", "26-35", etc. - keep as-is
-        if ageGroup.contains("-") {
-            let components = ageGroup.split(separator: "-")
-            if let lowerBound = components.first, let _ = Int(lowerBound),
-               let upperBound = components.last, let _ = Int(upperBound) {
-                return ageGroup // Return the original range format
-            }
-        }
-        
-        // Handle age patterns like "56+" - keep as-is
-        if ageGroup.contains("+") {
-            let numericPart = ageGroup.replacingOccurrences(of: "+", with: "")
-            if let _ = Int(numericPart) {
-                return ageGroup // Return the original format with +
-            }
-        }
-        
-        // Handle text patterns like "ABOVE 45" - keep as-is
-        if ageGroup.uppercased().contains("ABOVE") {
-            return ageGroup // Return the original text format
-        }
-        
-        // Try to extract any number from the string
-        let numbers = ageGroup.components(separatedBy: CharacterSet.decimalDigits.inverted)
-        for number in numbers {
-            if let age = Int(number), age > 0 {
-                return String(age)
-            }
-        }
-        
-        // Default fallback
-        return "N/A"
     }
 }
 
