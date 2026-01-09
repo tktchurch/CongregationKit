@@ -100,10 +100,21 @@ public struct SeekerCreateResponse: Codable, Sendable {
             
             let typeOfEntry = dto.typeOfEntry != nil ? TypeOfEntry(rawValue: dto.typeOfEntry!) : nil
             
+            // Handle lead creation - only create lead if we have meaningful data
+            let lead: Lead?
+            if dto.leadId != nil || dto.leadStatus != nil {
+                lead = Lead(id: dto.leadId, status: dto.leadStatus)
+            } else {
+                lead = nil
+            }
+            
+            // Use nameLocal if available, fallback to name
+            let fullName = dto.nameLocal ?? dto.name
+            
             let seeker = Seeker(
                 id: dto.id,
-                lead: Lead(id: dto.leadId, status: dto.leadStatus),
-                fullName: dto.nameLocal,
+                lead: lead,
+                fullName: fullName,
                 email: dto.emailId,
                 phone: dto.phoneNumber,
                 dateOfBirth: nil,
@@ -111,6 +122,7 @@ public struct SeekerCreateResponse: Codable, Sendable {
                 area: dto.presentResidingArea,
                 typeOfEntry: typeOfEntry,
                 maritalStatus: dto.maritalStatus,
+                preferredLanguage: dto.preferredLanguage,
                 createdDate: createdDate
             )
             return SeekerResponse(seekers: [seeker])
@@ -124,6 +136,7 @@ public struct SeekerCreateDTO: Codable, Sendable {
     public let id: String
     public let seekerId: String?
     public let leadId: String?
+    public let name: String?  // Added name field from Salesforce response
     public let nameLocal: String?
     public let phoneNumber: String?
     public let age: String?  // note: String, not Int
