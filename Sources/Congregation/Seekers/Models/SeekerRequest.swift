@@ -95,18 +95,23 @@ public struct SeekerCreateResponse: Codable, Sendable {
     /// Transforms this response into a SeekerResponse with a full Seeker object.
     public func toSeekerResponse() -> SeekerResponse {
         if success, let dto = seeker {
+            let dateFormatter = ISO8601DateFormatter()
+            let createdDate = dto.createdDate != nil ? dateFormatter.date(from: dto.createdDate!) : nil
+            
+            let typeOfEntry = dto.typeOfEntry != nil ? TypeOfEntry(rawValue: dto.typeOfEntry!) : nil
+            
             let seeker = Seeker(
                 id: dto.id,
-                lead: Lead(id: nil, status: dto.leadStatus),
+                lead: Lead(id: dto.leadId, status: dto.leadStatus),
                 fullName: dto.nameLocal,
                 email: dto.emailId,
                 phone: dto.phoneNumber,
                 dateOfBirth: nil,
                 ageGroup: dto.age,
                 area: dto.presentResidingArea,
-                typeOfEntry: nil,
+                typeOfEntry: typeOfEntry,
                 maritalStatus: dto.maritalStatus,
-                createdDate: nil
+                createdDate: createdDate
             )
             return SeekerResponse(seekers: [seeker])
         } else {
@@ -117,6 +122,8 @@ public struct SeekerCreateResponse: Codable, Sendable {
 
 public struct SeekerCreateDTO: Codable, Sendable {
     public let id: String
+    public let seekerId: String?
+    public let leadId: String?
     public let nameLocal: String?
     public let phoneNumber: String?
     public let age: String?  // note: String, not Int
@@ -127,4 +134,6 @@ public struct SeekerCreateDTO: Codable, Sendable {
     public let attendedCampus: Campus?
     public let emailId: String?
     public let leadStatus: LeadStatus?
+    public let createdDate: String?
+    public let typeOfEntry: String?
 }
