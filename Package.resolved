@@ -1,10 +1,10 @@
 {
-  "originHash" : "2997888418c5397ca30f13653599975fbff2be6346977703ee990dfb4121b264",
+  "originHash" : "bcdb14d646e6d893adc6f1640e4b62959676ce640f8f07c05f8c952e8ba64678",
   "pins" : [
     {
       "identity" : "async-http-client",
       "kind" : "remoteSourceControl",
-      "location" : "git@github.com:swift-server/async-http-client.git",
+      "location" : "https://github.com/swift-server/async-http-client.git",
       "state" : {
         "revision" : "5dd84c7bb48b348751d7bbe7ba94a17bafdcef37",
         "version" : "1.30.2"
@@ -85,7 +85,7 @@
     {
       "identity" : "swift-docc-plugin",
       "kind" : "remoteSourceControl",
-      "location" : "git@github.com:swiftlang/swift-docc-plugin.git",
+      "location" : "https://github.com/swiftlang/swift-docc-plugin.git",
       "state" : {
         "revision" : "3e4f133a77e644a5812911a0513aeb7288b07d06",
         "version" : "1.4.5"
