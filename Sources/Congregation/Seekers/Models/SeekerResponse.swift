@@ -141,7 +141,8 @@ public enum SeekerError: Error, LocalizedError, Sendable {
         case .invalidIdentifier:
             return "Identifier must be a valid leadId or phone number"
         case .invalidMaritalStatus(let status):
-            return "Invalid marital status '\(status)' for seeker. Valid values are: Married, Separated, Widowed, Unmarried, Engaged. Note: Use 'Unmarried' instead of 'Single' for seekers."
+            return
+                "Invalid marital status '\(status)' for seeker. Valid values are: Married, Separated, Widowed, Unmarried, Engaged. Note: Use 'Unmarried' instead of 'Single' for seekers."
         }
     }
 }

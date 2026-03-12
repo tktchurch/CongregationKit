@@ -97,9 +97,9 @@ public struct SeekerCreateResponse: Codable, Sendable {
         if success, let dto = seeker {
             let dateFormatter = ISO8601DateFormatter()
             let createdDate = dto.createdDate != nil ? dateFormatter.date(from: dto.createdDate!) : nil
-            
+
             let typeOfEntry = dto.typeOfEntry != nil ? TypeOfEntry(rawValue: dto.typeOfEntry!) : nil
-            
+
             // Handle lead creation - only create lead if we have meaningful data
             let lead: Lead?
             if dto.leadId != nil || dto.leadStatus != nil {
@@ -107,10 +107,10 @@ public struct SeekerCreateResponse: Codable, Sendable {
             } else {
                 lead = nil
             }
-            
+
             // Use nameLocal if available, fallback to name
             let fullName = dto.nameLocal ?? dto.name
-            
+
             let seeker = Seeker(
                 id: dto.id,
                 lead: lead,
