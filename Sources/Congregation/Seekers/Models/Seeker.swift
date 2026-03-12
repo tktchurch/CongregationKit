@@ -250,6 +250,18 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
     /// Important for family ministry and pastoral care planning.
     public let maritalStatus: MaritalStatus?
 
+    /// The seeker's preferred language, if available.
+    ///
+    /// Used for appropriate ministry approaches and communication.
+    /// Important for language-specific ministry and outreach.
+    public let preferredLanguage: PreferredLanguage?
+
+    /// The reason why the seeker was lost, if available.
+    ///
+    /// Used for tracking why seekers became inactive and
+    /// for improving follow-up strategies.
+    public let lostReason: LostReason?
+
     /// The date the seeker was created, if available.
     ///
     /// Used for follow-up timing, lead aging analysis, and
@@ -269,6 +281,8 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
     ///   - area: The seeker's area or locality, if available
     ///   - typeOfEntry: The type of entry for the seeker (e.g., Salvation, New Visitor)
     ///   - maritalStatus: The seeker's marital status, if available
+    ///   - preferredLanguage: The seeker's preferred language, if available
+    ///   - lostReason: The reason why the seeker was lost, if available
     ///   - createdDate: The date the seeker was created, if available
     public init(
         id: String? = nil,
@@ -281,6 +295,8 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
         area: String? = nil,
         typeOfEntry: TypeOfEntry? = nil,
         maritalStatus: MaritalStatus? = nil,
+        preferredLanguage: PreferredLanguage? = nil,
+        lostReason: LostReason? = nil,
         createdDate: Date? = nil
     ) {
         self.id = id
@@ -312,6 +328,8 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
         self.area = area
         self.typeOfEntry = typeOfEntry
         self.maritalStatus = maritalStatus
+        self.preferredLanguage = preferredLanguage
+        self.lostReason = lostReason
         self.createdDate = createdDate
     }
 
@@ -333,7 +351,9 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
         case leadStatus
         case typeOfEntry
         case maritalStatus
+        case preferredLanguage
         case createdDate
+        case lostReason = "lostReason"
     }
 
     /// The seeker's age, calculated from dateOfBirth if available.
@@ -428,6 +448,24 @@ extension Seeker: Codable {
             return nil
         }()
 
+        let preferredLanguage: PreferredLanguage? = {
+            if let rawValue = try? container.decodeIfPresent(String.self, forKey: .preferredLanguage),
+                let value = PreferredLanguage(rawValue: rawValue)
+            {
+                return value
+            }
+            return nil
+        }()
+
+        let lostReason: LostReason? = {
+            if let rawValue = try? container.decodeIfPresent(String.self, forKey: .lostReason),
+                let value = LostReason(rawValue: rawValue)
+            {
+                return value
+            }
+            return nil
+        }()
+
         self.init(
             id: id,
             lead: lead,
@@ -439,6 +477,8 @@ extension Seeker: Codable {
             area: area,
             typeOfEntry: typeOfEntry,
             maritalStatus: maritalStatus,
+            preferredLanguage: preferredLanguage,
+            lostReason: lostReason,
             createdDate: createdDate
         )
     }
@@ -456,7 +496,9 @@ extension Seeker: Codable {
         try container.encodeIfPresent(area, forKey: .area)
         try container.encodeIfPresent(typeOfEntry, forKey: .typeOfEntry)
         try container.encodeIfPresent(maritalStatus, forKey: .maritalStatus)
+        try container.encodeIfPresent(preferredLanguage, forKey: .preferredLanguage)
         try container.encodeIfPresent(createdDate, forKey: .createdDate)
+        try container.encodeIfPresent(lostReason, forKey: .lostReason)
     }
 }
 
@@ -539,6 +581,39 @@ public struct Lead: Codable, Sendable, Equatable {
     }
 }
 
+/// Extension to provide seeker-specific validation for MaritalStatus
+extension MaritalStatus {
+    /// Returns true if this marital status is valid for Salesforce seeker creation.
+    ///
+    /// Valid values for seekers: Married, Separated, Widowed, Unmarried, Engaged
+    ///
+    /// **Important:** Do NOT use `.single` for seekers - use `.unmarried` instead.
+    /// The `.single` value will cause Salesforce API errors when creating seekers.
+    public var isValidForSeeker: Bool {
+        switch self {
+        case .married, .separated, .widowed, .unmarried, .engaged:
+            return true
+        case .single, .divorced, .notApplicable, .other:
+            return false
+        }
+    }
+
+    /// Returns a seeker-friendly marital status, converting `.single` to `.unmarried` automatically.
+    ///
+    /// Use this property when creating seekers to ensure compatibility with Salesforce picklist values.
+    ///
+    /// **Warning:** Using `.single` directly for seeker creation will fail. Always use this property
+    /// or explicitly use `.unmarried` instead of `.single`.
+    public var seekerCompatible: MaritalStatus {
+        switch self {
+        case .single:
+            return .unmarried
+        default:
+            return self
+        }
+    }
+}
+
 /// Represents the status of a lead (e.g., Attempted, Follow-up, Converted).
 public enum LeadStatus: String, Codable, CaseIterable, Sendable {
     /// The lead was attempted.
@@ -557,6 +632,8 @@ public enum LeadStatus: String, Codable, CaseIterable, Sendable {
     case converted = "Converted"
     /// The lead should not be contacted.
     case doNotContact = "Do not contact"
+    /// The lead is repeated.
+    case repeated = "Repeated"
     /// Unknown lead status.
     case unknown
 
@@ -571,6 +648,7 @@ public enum LeadStatus: String, Codable, CaseIterable, Sendable {
         case .lost: return "Lost"
         case .converted: return "Converted"
         case .doNotContact: return "Do not contact"
+        case .repeated: return "Repeated"
         case .unknown: return "Unknown"
         }
     }
@@ -586,6 +664,7 @@ public enum LeadStatus: String, Codable, CaseIterable, Sendable {
         case .lost: return "Lost"
         case .converted: return "Converted"
         case .doNotContact: return "DNC"
+        case .repeated: return "Repeated"
         case .unknown: return "?"
         }
     }
@@ -603,6 +682,64 @@ public enum LeadStatus: String, Codable, CaseIterable, Sendable {
         case "Lost": self = .lost
         case "Converted": self = .converted
         case "Do not contact": self = .doNotContact
+        case "Repeated": self = .repeated
+        case "": self = .unknown
+        default: self = .unknown
+        }
+    }
+
+    /// Encodes this value into the given encoder.
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(self == .unknown ? "" : rawValue)
+    }
+}
+
+/// Represents the reason why a lead was lost.
+public enum LostReason: String, Codable, CaseIterable, Sendable {
+    /// The seeker was only interested in events.
+    case onlyForEvents = "Only for events"
+    /// The seeker came only once.
+    case cameOnlyOnce = "Came only once"
+    /// The seeker committed to another church.
+    case committedToOtherChurch = "Committed to Other Church"
+    /// The seeker should not be contacted.
+    case doNotContact = "Do Not Contact"
+    /// The seeker's phone number is wrong.
+    case wrongNumber = "Wrong Number"
+    /// The seeker doesn't receive incoming calls.
+    case noIncomingCalls = "No Incoming Calls"
+    /// The seeker has relocated.
+    case relocated = "Relocated"
+    /// Unknown lost reason.
+    case unknown
+
+    /// User-friendly display name for the lost reason.
+    public var displayName: String {
+        switch self {
+        case .onlyForEvents: return "Only for events"
+        case .cameOnlyOnce: return "Came only once"
+        case .committedToOtherChurch: return "Committed to Other Church"
+        case .doNotContact: return "Do Not Contact"
+        case .wrongNumber: return "Wrong Number"
+        case .noIncomingCalls: return "No Incoming Calls"
+        case .relocated: return "Relocated"
+        case .unknown: return "Unknown"
+        }
+    }
+
+    /// Creates a new instance from a decoder.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let value = try container.decode(String.self).trimmingCharacters(in: .whitespacesAndNewlines)
+        switch value {
+        case "Only for events": self = .onlyForEvents
+        case "Came only once": self = .cameOnlyOnce
+        case "Committed to Other Church": self = .committedToOtherChurch
+        case "Do Not Contact": self = .doNotContact
+        case "Wrong Number": self = .wrongNumber
+        case "No Incoming Calls": self = .noIncomingCalls
+        case "Relocated": self = .relocated
         case "": self = .unknown
         default: self = .unknown
         }

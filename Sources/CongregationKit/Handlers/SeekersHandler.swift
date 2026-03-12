@@ -69,6 +69,12 @@ public protocol SeekersHandler: Sendable {
     /// - Returns: Array of seekers
     /// - Throws: `SeekerError` if operation fails
     func fetchAll() async throws -> [Seeker]
+
+    /// Creates a new seeker in Salesforce
+    /// - Parameter seeker: The seeker to create
+    /// - Returns: SeekerResponse containing the created seeker
+    /// - Throws: `SeekerError` if operation fails
+    func create(_ seeker: Seeker) async throws -> SeekerResponse
 }
 
 /// Default implementation of SeekersHandler for Salesforce
@@ -160,6 +166,18 @@ public struct SalesforceSeekersHandler: SeekersHandler {
     /// - Throws: `SeekerError` if operation fails
     public func fetchAll() async throws -> [Seeker] {
         return try await salesforceClient.seekers.fetchAll(
+            accessToken: accessToken,
+            instanceUrl: instanceUrl
+        )
+    }
+
+    /// Creates a new seeker in Salesforce
+    /// - Parameter seeker: The seeker to create
+    /// - Returns: SeekerResponse containing the created seeker
+    /// - Throws: `SeekerError` if operation fails
+    public func create(_ seeker: Seeker) async throws -> SeekerResponse {
+        return try await salesforceClient.seekers.create(
+            seeker,
             accessToken: accessToken,
             instanceUrl: instanceUrl
         )

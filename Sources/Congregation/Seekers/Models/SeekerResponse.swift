@@ -128,6 +128,7 @@ public enum SeekerError: Error, LocalizedError, Sendable {
     case invalidSeekerData
     case fetchFailed(Error)
     case invalidIdentifier
+    case invalidMaritalStatus(String)
 
     public var errorDescription: String? {
         switch self {
@@ -139,6 +140,9 @@ public enum SeekerError: Error, LocalizedError, Sendable {
             return "Failed to fetch seeker data: \(error.localizedDescription)"
         case .invalidIdentifier:
             return "Identifier must be a valid leadId or phone number"
+        case .invalidMaritalStatus(let status):
+            return
+                "Invalid marital status '\(status)' for seeker. Valid values are: Married, Separated, Widowed, Unmarried, Engaged. Note: Use 'Unmarried' instead of 'Single' for seekers."
         }
     }
 }

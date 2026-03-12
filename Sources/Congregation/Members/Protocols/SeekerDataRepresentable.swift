@@ -26,6 +26,8 @@ public protocol SeekerDataRepresentable: Codable, Sendable {
     var typeOfEntry: TypeOfEntry? { get }
     /// The seeker's marital status, if available.
     var maritalStatus: MaritalStatus? { get }
+    /// The seeker's preferred language, if available.
+    var preferredLanguage: PreferredLanguage? { get }
     /// The date the seeker was created, if available.
     var createdDate: Date? { get }
     /// The seeker's age, calculated from dateOfBirth if available.

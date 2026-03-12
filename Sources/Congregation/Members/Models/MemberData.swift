@@ -163,6 +163,14 @@ public enum PreferredLanguage: String, Codable, CaseIterable, Sendable {
     case english = "English"
     case telugu = "Telugu"
     case hindi = "Hindi"
+    case kannada = "Kannada"
+    case tamil = "Tamil"
+    case bengali = "Bengali"
+    case urdu = "Urdu"
+    case malayalam = "Malayalam"
+    case marathi = "Marathi"
+    case arabic = "Arabic"
+    case odia = "Odia"
 
     /// A user-friendly display name for the language.
     public var displayName: String { self.rawValue }
@@ -173,6 +181,14 @@ public enum PreferredLanguage: String, Codable, CaseIterable, Sendable {
         case .english: return "EN"
         case .telugu: return "TE"
         case .hindi: return "HI"
+        case .kannada: return "KN"
+        case .tamil: return "TA"
+        case .bengali: return "BN"
+        case .urdu: return "UR"
+        case .malayalam: return "ML"
+        case .marathi: return "MR"
+        case .arabic: return "AR"
+        case .odia: return "OR"
         }
     }
 
@@ -182,6 +198,14 @@ public enum PreferredLanguage: String, Codable, CaseIterable, Sendable {
         case .english: return "en"
         case .telugu: return "te"
         case .hindi: return "hi"
+        case .kannada: return "kn"
+        case .tamil: return "ta"
+        case .bengali: return "bn"
+        case .urdu: return "ur"
+        case .malayalam: return "ml"
+        case .marathi: return "mr"
+        case .arabic: return "ar"
+        case .odia: return "or"
         }
     }
 
@@ -192,6 +216,14 @@ public enum PreferredLanguage: String, Codable, CaseIterable, Sendable {
         case "English": self = .english
         case "Telugu": self = .telugu
         case "Hindi": self = .hindi
+        case "Kannada": self = .kannada
+        case "Tamil": self = .tamil
+        case "Bengali": self = .bengali
+        case "Urdu": self = .urdu
+        case "Malayalam": self = .malayalam
+        case "Marathi": self = .marathi
+        case "Arabic": self = .arabic
+        case "Odia": self = .odia
         default:
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unknown PreferredLanguage value: \(value)")
         }

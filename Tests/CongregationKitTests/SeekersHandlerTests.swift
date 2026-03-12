@@ -87,10 +87,82 @@ actor SeekersHandlerTests {
                 if response.seekers.isEmpty || nextPageToken == nil { break }
                 pageNumber += 1
             } catch {
-                print("[ERROR] Decoding or API error on page \(pageNumber):", error)
+                // print("[ERROR] Decoding or API error on page \(pageNumber):", error)
                 throw error
             }
         } while allSeekers.count < (totalRecords ?? Int.max)
-        print("[DEBUG] Total seekers fetched: \(allSeekers.count), totalRecords: \(String(describing: totalRecords))")
+        // print("[DEBUG] Total seekers fetched: \(allSeekers.count), totalRecords: \(String(describing: totalRecords))")
+    }
+
+    @Test("Create a new seeker")
+    func testCreateSeeker() async throws {
+        // Create a test seeker with all required fields
+        let testSeeker = Seeker(
+            id: nil,
+            lead: nil,
+            fullName: "Test User Swift",
+            email: "test.swift@example.com",
+            phone: "9876543210",
+            dateOfBirth: nil,
+            ageGroup: "30",
+            area: "Hyderabad",
+            typeOfEntry: .comingBack,
+            maritalStatus: .engaged,
+            preferredLanguage: .telugu,
+            createdDate: nil
+        )
+
+        do {
+            let response = try await handler.create(testSeeker)
+
+            // Verify response
+            #expect(response.error == nil || response.error == false)
+            #expect(response.seekers.count > 0)
+
+            if let createdSeeker = response.seekers.first {
+                // print("[DEBUG] Created seeker with ID: \(createdSeeker.id ?? "nil")")
+                #expect(createdSeeker.fullName == "Test User Swift")
+                #expect(createdSeeker.phone == "9876543210")
+            }
+        } catch {
+            // print("[ERROR] Failed to create seeker:", error)
+            throw error
+        }
+    }
+
+    @Test("Create seeker with optional fields")
+    func testCreateSeekerWithOptionalFields() async throws {
+        // Create a test seeker with all fields including optional ones
+        let testSeeker = Seeker(
+            id: nil,
+            lead: nil,
+            fullName: "Jane Smith Swift",
+            email: "jane.swift@example.com",
+            phone: "9123456789",
+            dateOfBirth: nil,
+            ageGroup: "25",
+            area: "Secunderabad",
+            typeOfEntry: .salvation,
+            maritalStatus: .married,
+            preferredLanguage: .telugu,
+            createdDate: nil
+        )
+
+        do {
+            let response = try await handler.create(testSeeker)
+
+            // Verify response
+            #expect(response.error == nil || response.error == false)
+            #expect(response.seekers.count > 0)
+
+            if let createdSeeker = response.seekers.first {
+                // print("[DEBUG] Created seeker with ID: \(createdSeeker.id ?? "nil")")
+                #expect(createdSeeker.fullName == "Jane Smith Swift")
+                #expect(createdSeeker.email == "jane.swift@example.com")
+            }
+        } catch {
+            // print("[ERROR] Failed to create seeker with optional fields:", error)
+            throw error
+        }
     }
 }

@@ -299,4 +299,52 @@ public struct SalesforceSeekerRoutesImpl: SalesforceSeekerRoutes {
         }
         return seeker
     }
+
+    /// Creates a new seeker in Salesforce.
+    /// - Parameters:
+    ///   - seeker: The seeker to create
+    ///   - accessToken: The OAuth access token
+    ///   - instanceUrl: The Salesforce instance URL
+    /// - Returns: SeekerResponse containing the created seeker
+    /// - Throws: `SeekerError` if creation fails
+    public func create(_ seeker: Seeker, accessToken: String, instanceUrl: String) async throws -> SeekerResponse {
+        let seekerURL = "\(instanceUrl)\(SalesforceAPIConstants.seekerEndpointV2)/create"
+        let requestHeaders = SalesforceAPIUtil.convertToHTTPHeaders([
+            "Authorization": "Bearer \(accessToken)",
+            "Content-Type": "application/json",
+        ])
+
+        // Transform Seeker into SeekerCreateRequest
+        let createRequest = try SeekerCreateRequest(from: seeker)
+
+        // Wrap the request in a "request" key as Salesforce expects
+        let wrappedRequest = ["request": createRequest]
+
+        let encoder = JSONEncoder()
+        // encoder.outputFormatting = .prettyPrinted
+        let requestBody = try encoder.encode(wrappedRequest)
+
+        // Log the request body for debugging
+        // print("[DEBUG] POST URL: \(seekerURL)")
+        // if let jsonString = String(data: requestBody, encoding: .utf8) {
+        //     print("[DEBUG] Request JSON being sent to Salesforce:")
+        //     print(jsonString)
+        // }
+
+        let response = try await client.sendRequest(
+            method: .POST,
+            path: seekerURL,
+            body: .data(requestBody),
+            headers: requestHeaders
+        )
+
+        do {
+            let createResponse = try await client.processResponse(response, as: SeekerCreateResponse.self)
+            return createResponse.toSeekerResponse()
+        } catch let error as SalesforceAuthError {
+            throw SeekerError.fetchFailed(error)
+        } catch {
+            throw SeekerError.fetchFailed(error)
+        }
+    }
 }
