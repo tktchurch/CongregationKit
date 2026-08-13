@@ -1,6 +1,10 @@
 import Foundation
 
-/// Represents a family unit within the church congregation.
+/// A household unit in the congregation domain (framework-agnostic).
+///
+/// Distinct from ``FamilyRecord``, which is a Salesforce v2 person/dependent row
+/// from `/families`. Use ``Family`` / ``FamilyTree`` / ``FamiliesHandler`` for
+/// household identity and relationships. Salesforce v2 does not implement this handler.
 ///
 /// A family groups related members together, providing a household-level view
 /// for ministry planning, pastoral care, and demographic analysis.

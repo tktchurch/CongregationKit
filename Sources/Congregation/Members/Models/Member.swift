@@ -154,7 +154,7 @@ import Foundation
 /// - **Field Expansion:** Use `MemberExpand` to fetch only required data
 /// - **Memory Efficiency:** Large data sets are handled through pagination
 /// - **Concurrency Safe:** All properties are `Sendable` for async operations
-public struct Member: Codable, Identifiable, MemberDataRepresentable {
+public struct Member: Codable, Identifiable, MemberDataRepresentable, SyncMetadataRepresentable {
     // MARK: - Identifiers
     /// Unique identifier for the member
     public let id: String?
@@ -231,6 +231,35 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
 
     /// The raw HTML for the member's photo as received from the API.
     public let photoRaw: String?
+
+    // MARK: - v2 Sync & Extended Fields
+    /// v2 sync metadata (etag, resource name, timestamps).
+    public let sync: SyncMetadata?
+    /// Family name (v2 `familyName`).
+    public let familyName: String?
+    /// Preferred campus (v2 `preferredCampus`).
+    public let preferredCampus: Campus?
+    /// WhatsApp number (v2 `whatsapp`).
+    public let whatsapp: String?
+    /// Permanent address (v2 `permanentAddress`).
+    public let permanentAddress: String?
+    /// Primary department (v2 `primaryDepartment`).
+    public let primaryDepartment: PrimaryDepartment?
+    /// Linked lead ID (v2 `leadId`).
+    public let leadId: String?
+    /// Legacy identifier (v2 `legacyId`).
+    public let legacyId: String?
+    /// Member description (v2 `description`).
+    public let memberDescription: String?
+    /// Related family rows when `expand=family`.
+    public let family: [FamilyRecord]?
+    /// Related spiritual Q&A rows when `expand=spiritualRecords`.
+    public let spiritualRecords: [SpiritualRecord]?
+    /// Related course rows when `expand=courses`.
+    public let courses: [Course]?
+    /// Related follow-up tasks when `expand=tasks`.
+    public let tasks: [FollowUpTask]?
+
     /// The parsed member photo (URL and alt text), if available.
     public var photo: MemberPhoto? {
         guard let html = photoRaw else { return nil }
@@ -311,7 +340,20 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
         employmentInformation: EmploymentInformation? = nil,
         maritalInformation: MaritalInformation? = nil,
         discipleshipInformation: DiscipleshipInformation? = nil,
-        photoRaw: String? = nil
+        photoRaw: String? = nil,
+        sync: SyncMetadata? = nil,
+        familyName: String? = nil,
+        preferredCampus: Campus? = nil,
+        whatsapp: String? = nil,
+        permanentAddress: String? = nil,
+        primaryDepartment: PrimaryDepartment? = nil,
+        leadId: String? = nil,
+        legacyId: String? = nil,
+        memberDescription: String? = nil,
+        family: [FamilyRecord]? = nil,
+        spiritualRecords: [SpiritualRecord]? = nil,
+        courses: [Course]? = nil,
+        tasks: [FollowUpTask]? = nil
     ) {
         self.id = id
         self.memberId = memberId.flatMap { MemberID(rawValue: $0) }
@@ -351,6 +393,19 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
         self.maritalInformation = maritalInformation
         self.discipleshipInformation = discipleshipInformation
         self.photoRaw = photoRaw
+        self.sync = sync
+        self.familyName = familyName
+        self.preferredCampus = preferredCampus
+        self.whatsapp = whatsapp
+        self.permanentAddress = permanentAddress
+        self.primaryDepartment = primaryDepartment
+        self.leadId = leadId
+        self.legacyId = legacyId
+        self.memberDescription = memberDescription
+        self.family = family
+        self.spiritualRecords = spiritualRecords
+        self.courses = courses
+        self.tasks = tasks
     }
     /// Preferred initializer accepting MemberID for memberId
     public init(
@@ -384,7 +439,20 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
         employmentInformation: EmploymentInformation? = nil,
         maritalInformation: MaritalInformation? = nil,
         discipleshipInformation: DiscipleshipInformation? = nil,
-        photoRaw: String? = nil
+        photoRaw: String? = nil,
+        sync: SyncMetadata? = nil,
+        familyName: String? = nil,
+        preferredCampus: Campus? = nil,
+        whatsapp: String? = nil,
+        permanentAddress: String? = nil,
+        primaryDepartment: PrimaryDepartment? = nil,
+        leadId: String? = nil,
+        legacyId: String? = nil,
+        memberDescription: String? = nil,
+        family: [FamilyRecord]? = nil,
+        spiritualRecords: [SpiritualRecord]? = nil,
+        courses: [Course]? = nil,
+        tasks: [FollowUpTask]? = nil
     ) {
         self.id = id
         self.memberId = memberId
@@ -424,6 +492,19 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable {
         self.maritalInformation = maritalInformation
         self.discipleshipInformation = discipleshipInformation
         self.photoRaw = photoRaw
+        self.sync = sync
+        self.familyName = familyName
+        self.preferredCampus = preferredCampus
+        self.whatsapp = whatsapp
+        self.permanentAddress = permanentAddress
+        self.primaryDepartment = primaryDepartment
+        self.leadId = leadId
+        self.legacyId = legacyId
+        self.memberDescription = memberDescription
+        self.family = family
+        self.spiritualRecords = spiritualRecords
+        self.courses = courses
+        self.tasks = tasks
     }
 }
 
@@ -436,12 +517,18 @@ extension Member {
                 attendingService, photo
             // API alternate keys
             case currentAddress, contactNumberMobile, lifeGroupLeaderName
-            case profession, location, whatsappNo, alternateNumber
+            case profession, location, whatsappNo, alternateNumber, whatsapp
             case employmentStatus, nameOfTheOrganization, occupationSubCategory, occupation
             case martialStatus, weddingAnniversaryDdMmYyyy, spouseName, numberOfChildren
             case sector
             // Name fields from API
-            case name, middleName, lastNameSurname
+            case name, middleName, lastNameSurname, firstName, lastName, familyName
+            // v2 sync
+            case etag, createTime, updateTime
+            case preferredCampus, permanentAddress, primaryDepartment, leadId, legacyId
+            case description
+            case family, spiritualRecords, courses, tasks
+            case maritalStatus, weddingAnniversary
         }
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let id = try container.decodeIfPresent(String.self, forKey: .id)
@@ -452,33 +539,43 @@ extension Member {
                 return nil
             }
         }()
+        let createTimeString = try container.decodeIfPresent(String.self, forKey: .createTime)
+        let updateTimeString = try container.decodeIfPresent(String.self, forKey: .updateTime)
         let createdDate: Date? = {
+            if let parsed = SyncDateCoding.decode(from: createTimeString) { return parsed }
             if let dateString = try? container.decodeIfPresent(String.self, forKey: .createdDate) {
                 let formatter = ISO8601DateFormatter()
                 formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
                 return formatter.date(from: dateString)
-            } else {
-                return nil
             }
+            return nil
         }()
         let lastModifiedDate: Date? = {
+            if let parsed = SyncDateCoding.decode(from: updateTimeString) { return parsed }
             if let dateString = try? container.decodeIfPresent(String.self, forKey: .lastModifiedDate) {
                 let formatter = ISO8601DateFormatter()
                 formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
                 return formatter.date(from: dateString)
-            } else {
-                return nil
             }
+            return nil
         }()
+        let resourceName = try container.decodeIfPresent(String.self, forKey: .name)
+        let sync = SyncMetadata(
+            name: resourceName?.contains("/") == true ? resourceName : nil,
+            etag: try container.decodeIfPresent(String.self, forKey: .etag),
+            createTime: SyncDateCoding.decode(from: createTimeString),
+            updateTime: SyncDateCoding.decode(from: updateTimeString)
+        )
 
-        // Parse name fields from API response
-        let fullName = try container.decodeIfPresent(String.self, forKey: .name)
+        // v2 sends firstName/lastName; v1 sends combined name
+        let firstNameDirect = try container.decodeIfPresent(String.self, forKey: .firstName)
+        let lastNameDirect = try container.decodeIfPresent(String.self, forKey: .lastName)
+        let fullName = resourceName?.contains("/") == true ? nil : resourceName
         let middleName = try container.decodeIfPresent(String.self, forKey: .middleName)
         let lastNameSurname = try container.decodeIfPresent(String.self, forKey: .lastNameSurname)
 
-        // Parse full name into first and last name components
-        let (firstName, lastName): (String?, String?) = {
-            guard let fullName = fullName else { return (nil, nil) }
+        let (parsedFirstName, parsedLastName): (String?, String?) = {
+            guard let fullName else { return (nil, nil) }
             let nameComponents = fullName.components(separatedBy: " ").filter { !$0.isEmpty }
             if nameComponents.count >= 2 {
                 let first = nameComponents[0]
@@ -491,15 +588,21 @@ extension Member {
             }
         }()
 
-        // Use lastNameSurname if available, otherwise use parsed lastName
-        let finalLastName = lastNameSurname ?? lastName
+        let firstName = firstNameDirect ?? parsedFirstName
+        let finalLastName = lastNameDirect ?? lastNameSurname ?? parsedLastName
+        let familyName = try container.decodeIfPresent(String.self, forKey: .familyName)
+        let preferredCampus = try container.decodeIfPresent(Campus.self, forKey: .preferredCampus)
+        let permanentAddress = try container.decodeIfPresent(String.self, forKey: .permanentAddress)
+        let primaryDepartment = try container.decodeIfPresent(PrimaryDepartment.self, forKey: .primaryDepartment)
+        let leadId = try container.decodeIfPresent(String.self, forKey: .leadId)
+        let legacyId = try container.decodeIfPresent(String.self, forKey: .legacyId)
+        let memberDescription = try container.decodeIfPresent(String.self, forKey: .description)
 
-        // Construct memberName from available components
         let memberName: String? = {
             var components: [String] = []
-            if let firstName = firstName { components.append(firstName) }
-            if let middleName = middleName { components.append(middleName) }
-            if let finalLastName = finalLastName { components.append(finalLastName) }
+            if let firstName { components.append(firstName) }
+            if let middleName { components.append(middleName) }
+            if let finalLastName { components.append(finalLastName) }
             return components.isEmpty ? fullName : components.joined(separator: " ")
         }()
 
@@ -514,16 +617,7 @@ extension Member {
         let area = try container.decodeIfPresent(String.self, forKey: .area)
         let address =
             try container.decodeIfPresent(String.self, forKey: .currentAddress) ?? container.decodeIfPresent(String.self, forKey: .address)
-        let dateOfBirth: Date? = {
-            if let dateString = try? container.decodeIfPresent(String.self, forKey: .dateOfBirth) {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd"
-                formatter.timeZone = TimeZone(secondsFromGMT: 0)
-                return formatter.date(from: dateString)
-            } else {
-                return nil
-            }
-        }()
+        let dateOfBirth: Date? = SyncDateCoding.decode(from: try container.decodeIfPresent(String.self, forKey: .dateOfBirth))
         let title = try container.decodeIfPresent(MemberTitle.self, forKey: .title)
         let memberType = try container.decodeIfPresent(MemberType.self, forKey: .memberType)
         let bloodGroup = try container.decodeIfPresent(BloodGroup.self, forKey: .bloodGroup)
@@ -547,14 +641,16 @@ extension Member {
         let campus = try container.decodeIfPresent(Campus.self, forKey: .campus)
         let spm = try container.decodeIfPresent(Bool.self, forKey: .spm)
         let attendingService = try container.decodeIfPresent(AttendingService.self, forKey: .attendingService)
-        let whatsappNumber = try container.decodeIfPresent(String.self, forKey: .whatsappNo)
+        let whatsappNumber =
+            try container.decodeIfPresent(String.self, forKey: .whatsapp)
+            ?? container.decodeIfPresent(String.self, forKey: .whatsappNo)
         let alternateNumber = try container.decodeIfPresent(String.self, forKey: .alternateNumber)
         let profession = try container.decodeIfPresent(String.self, forKey: .profession)
         let location = try container.decodeIfPresent(String.self, forKey: .location)
         let contactInformation = ContactInformation(
             phoneNumber: phone,
             email: email,
-            address: address,
+            address: address ?? permanentAddress,
             area: area,
             whatsappNumber: whatsappNumber,
             alternateNumber: alternateNumber,
@@ -576,11 +672,15 @@ extension Member {
         let maritalInformation = try MaritalInformation(from: decoder)
         let discipleshipInformation = try DiscipleshipInformation(from: decoder)
         let photoRaw = try container.decodeIfPresent(String.self, forKey: .photo)
+        let family = try container.decodeIfPresent([FamilyRecord].self, forKey: .family)
+        let spiritualRecords = try container.decodeIfPresent([SpiritualRecord].self, forKey: .spiritualRecords)
+        let courses = try container.decodeIfPresent([Course].self, forKey: .courses)
+        let tasks = try container.decodeIfPresent([FollowUpTask].self, forKey: .tasks)
         self.init(
             id: id,
             memberId: memberId,
-            createdDate: createdDate,  // This will be set by the decoder
-            lastModifiedDate: lastModifiedDate,  // This will be set by the decoder
+            createdDate: createdDate,
+            lastModifiedDate: lastModifiedDate,
             memberName: memberName,
             firstName: firstName,
             middleName: middleName,
@@ -590,7 +690,7 @@ extension Member {
             email: email,
             lifeGroupName: lifeGroupName,
             area: area,
-            address: address,
+            address: address ?? permanentAddress,
             dateOfBirth: dateOfBirth,
             title: title,
             memberType: memberType,
@@ -607,7 +707,20 @@ extension Member {
             employmentInformation: employmentInformation,
             maritalInformation: maritalInformation,
             discipleshipInformation: discipleshipInformation,
-            photoRaw: photoRaw
+            photoRaw: photoRaw,
+            sync: sync,
+            familyName: familyName,
+            preferredCampus: preferredCampus,
+            whatsapp: whatsappNumber,
+            permanentAddress: permanentAddress,
+            primaryDepartment: primaryDepartment,
+            leadId: leadId,
+            legacyId: legacyId,
+            memberDescription: memberDescription,
+            family: family,
+            spiritualRecords: spiritualRecords,
+            courses: courses,
+            tasks: tasks
         )
     }
 
@@ -945,7 +1058,11 @@ extension Member {
             employmentInformation: expanded.contains(.employmentInformation) ? employmentInformation : nil,
             maritalInformation: expanded.contains(.martialInformation) ? maritalInformation : nil,
             discipleshipInformation: expanded.contains(.discipleshipInformation) ? discipleshipInformation : nil,
-            photoRaw: photoRaw
+            photoRaw: photoRaw,
+            family: family,
+            spiritualRecords: spiritualRecords,
+            courses: courses,
+            tasks: tasks
         )
     }
 }

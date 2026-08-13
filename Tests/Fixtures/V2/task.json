@@ -1,0 +1,20 @@
+{
+  "name": "tasks/00TTEST00000001",
+  "etag": "W/\"ghi789\"",
+  "createTime": "2025-02-01T08:00:00.000Z",
+  "updateTime": "2025-06-03T10:00:00.000Z",
+  "id": "00TTEST00000001",
+  "subject": "Follow up call",
+  "status": "Open",
+  "priority": "Normal",
+  "type": "Seeker",
+  "relatedId": "SKR100001",
+  "relatedName": "Sample Seeker",
+  "relatedResource": "seekers/SKR100001",
+  "phone": "+910000000003",
+  "ownerId": "005TEST00000001",
+  "ownerName": "Ops Staff",
+  "activityDate": "2025-06-05",
+  "description": "Call to confirm visit",
+  "area": "Sample Area"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "a004TEST00000001",
+  "etag": "W/\"pqr678\"",
+  "createTime": "2024-03-01T00:00:00.000Z",
+  "updateTime": "2025-01-01T00:00:00.000Z",
+  "name": "Family Dependent",
+  "memberId": "TKT100001",
+  "dateOfBirth": "2015-04-10",
+  "age": "10",
+  "profession": "Student",
+  "cardIssued": true
+}

@@ -59,16 +59,21 @@ public actor SalesforceClient {
     /// Routes for Salesforce files
     public let files: any SalesforceFilesRoutes
 
+    /// TKT API v2 transport (default for new integrations).
+    public let v2: TktApiV2Client
+
     private let handler: SalesforceAPIHandler
 
     /// Creates a new Salesforce API client.
     /// - Parameter httpClient: The HTTP client to use for making requests
     public init(httpClient: HTTPClient) {
-        self.handler = SalesforceAPIHandler(httpClient: httpClient)
+        let handler = SalesforceAPIHandler(httpClient: httpClient)
+        self.handler = handler
         self.auth = SalesforceAuthRoutesImpl(client: handler)
         self.members = SalesforceMemberRoutesImpl(client: handler)
         self.seekers = SalesforceSeekerRoutesImpl(client: handler)
         self.files = SalesforceFilesRoutesImpl(client: handler)
+        self.v2 = TktApiV2Client(handler: handler)
     }
 }
 

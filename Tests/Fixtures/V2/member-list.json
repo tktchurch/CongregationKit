@@ -1,0 +1,19 @@
+{
+  "members": [
+    {
+      "name": "members/TKT100001",
+      "etag": "W/\"abc123\"",
+      "createTime": "2024-01-15T10:00:00.000Z",
+      "updateTime": "2025-06-01T08:30:00.000Z",
+      "id": "a001TEST00000001",
+      "memberId": "TKT100001",
+      "firstName": "Sample",
+      "lastName": "Member",
+      "campus": "East Campus",
+      "status": "Regular"
+    }
+  ],
+  "nextPageToken": "cursor-page-2",
+  "prevPageToken": null,
+  "totalSize": 1
+}

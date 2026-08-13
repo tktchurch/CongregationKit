@@ -19,44 +19,29 @@ A high-level Swift SDK for TKT Church and other churches to integrate with Sales
 ## Usage Example
 
 ```swift
-import CongregationKit
-import AsyncHTTPClient
-
-let httpClient = HTTPClient(eventLoopGroupProvider: .shared)
-let credentials = SalesforceCredentials(
-    clientId: "your_client_id",
-    clientSecret: "your_client_secret",
-    username: "your_username",
-    password: "your_password"
-)
-let congregation = try await CongregationKit(httpClient: httpClient, credentials: credentials)
-
-// Fetch members with expanded information
-let members = try await congregation.members.fetchAll(
-    pageNumber: 1, 
-    pageSize: 50, 
-    expanded: [.contactInformation, .employmentInformation, .discipleshipInformation]
+// v2 (preferred): cursor pagination + field selection
+var query = SyncQuery(pageSize: 50, fields: ["memberId", "firstName", "campus"])
+let page = try await congregation.members.fetchAll(
+    query: query,
+    filters: MemberListQuery(campus: .eastCampus, status: .regular)
 )
 
-// Fetch specific member with type-safe ID
-let member = try await congregation.members.fetch(
-    id: MemberID(validating: "TKT123456"), 
-    expanded: [.maritalInformation]
+// Ops work queue
+let tasks = try await congregation.tasks.fetchAll(
+    query: SyncQuery(pageSize: 25),
+    filters: FollowUpTaskQuery(view: .openSeekers, mine: true)
 )
-
-// Fetch seekers with filtering
-let seekers = try await congregation.seekers.fetchAll(
-    pageNumber: 1, 
-    pageSize: 10, 
-    campus: .eastCampus, 
-    leadStatus: .attempted
-)
-
-// Download files
-let file = try await congregation.files.download(recordId: "a0x2w000002jxqn")
 ```
 
-## Key Features
+## DocC Articles
+
+- ``GettingStarted``
+- ``MigratingFromV1``
+- ``OpsWorkQueue``
+
+## Topics
+
+### Creating a Client
 
 ### Core Functionality
 - Modular, extensible models for member, seeker, and file data
@@ -80,18 +65,17 @@ let file = try await congregation.files.download(recordId: "a0x2w000002jxqn")
 - Rate limiting support
 - Secure file handling with proper content validation
 
-## Topics
-
-### Creating a Client
-- ``CongregationKit/init(httpClient:credentials:)``
-- ``CongregationKit/init(httpClient:authResponse:)``
-
 ### Available Services
 - ``CongregationKit/members``
 - ``CongregationKit/seekers``
 - ``CongregationKit/files``
+- ``CongregationKit/tasks``
+- ``CongregationKit/users``
+- ``CongregationKit/courses``
+- ``CongregationKit/familyRecords``
+- ``CongregationKit/spiritualRecords``
 
-### Core Data Models
+## Key Features
 - ``Member``
 - ``Seeker``
 - ``MemberID``

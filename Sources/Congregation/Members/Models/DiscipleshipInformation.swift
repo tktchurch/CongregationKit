@@ -325,14 +325,18 @@ public struct DiscipleshipInformation: Codable, Equatable, Sendable, Discipleshi
 
     /// Coding keys for mapping API fields to struct properties.
     enum CodingKeys: String, CodingKey {
-        case bornAgainDate = "bornAgainDateText"
-        case waterBaptismDate = "waterBaptismDateText"
+        case bornAgainDate
+        case bornAgainDateText
+        case waterBaptismDate
+        case waterBaptismDateText
         case waterBaptismReceived = "waterBaptism"
         case prayerCourseCompleted = "prayerCourse"
-        case prayerCourseDate = "prayerCourseDateText"
+        case prayerCourseDate
+        case prayerCourseDateText
         case foundationCourseCompleted = "foundationCourse"
         case attendedLifeTransformationCamp
-        case holySpiritFilling = "holySpiritFiling"
+        case holySpiritFilling
+        case holySpiritFiling
         case missionary
         case subscribedToYoutubeChannel
         case subscribedToWhatsapp
@@ -341,6 +345,7 @@ public struct DiscipleshipInformation: Codable, Equatable, Sendable, Discipleshi
         case serviceCampus
         case interestedToServe
         case bibleCourse
+        case saidThePrayer
     }
 
     /// Creates a new DiscipleshipInformation instance from a decoder.
@@ -352,21 +357,29 @@ public struct DiscipleshipInformation: Codable, Equatable, Sendable, Discipleshi
     /// - Throws: `DecodingError` if the data is corrupted or invalid.
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.bornAgainDate = try container.decodeIfPresent(String.self, forKey: .bornAgainDate)
-        let waterBaptismDate = try container.decodeIfPresent(String.self, forKey: .waterBaptismDate)
+        self.bornAgainDate =
+            try container.decodeIfPresent(String.self, forKey: .bornAgainDate)
+            ?? container.decodeIfPresent(String.self, forKey: .bornAgainDateText)
+        let waterBaptismDate =
+            try container.decodeIfPresent(String.self, forKey: .waterBaptismDate)
+            ?? container.decodeIfPresent(String.self, forKey: .waterBaptismDateText)
         let waterBaptismReceived = try container.decodeIfPresent(Bool.self, forKey: .waterBaptismReceived)
         self.waterBaptism =
             (waterBaptismDate != nil || waterBaptismReceived != nil)
             ? WaterBaptism(date: waterBaptismDate, received: waterBaptismReceived) : nil
         let prayerCourseCompleted = try container.decodeIfPresent(Bool.self, forKey: .prayerCourseCompleted)
-        let prayerCourseDate = try container.decodeIfPresent(String.self, forKey: .prayerCourseDate)
+        let prayerCourseDate =
+            try container.decodeIfPresent(String.self, forKey: .prayerCourseDate)
+            ?? container.decodeIfPresent(String.self, forKey: .prayerCourseDateText)
         self.prayerCourse =
             (prayerCourseCompleted != nil || prayerCourseDate != nil)
             ? PrayerCourse(completed: prayerCourseCompleted, date: prayerCourseDate) : nil
         let foundationCourseCompleted = try container.decodeIfPresent(Bool.self, forKey: .foundationCourseCompleted)
         self.foundationCourse = foundationCourseCompleted != nil ? FoundationCourse(completed: foundationCourseCompleted) : nil
         self.attendedLifeTransformationCamp = try container.decodeIfPresent(Bool.self, forKey: .attendedLifeTransformationCamp)
-        self.holySpiritFilling = try container.decodeIfPresent(Bool.self, forKey: .holySpiritFilling)
+        self.holySpiritFilling =
+            try container.decodeIfPresent(Bool.self, forKey: .holySpiritFilling)
+            ?? container.decodeIfPresent(Bool.self, forKey: .holySpiritFiling)
         self.missionary = try container.decodeIfPresent(MissionaryType.self, forKey: .missionary)
         self.subscribedToYoutubeChannel = try container.decodeIfPresent(SubscriptionStatus.self, forKey: .subscribedToYoutubeChannel)
         self.subscribedToWhatsapp = try container.decodeIfPresent(SubscriptionStatus.self, forKey: .subscribedToWhatsapp)

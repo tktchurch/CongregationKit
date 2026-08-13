@@ -73,6 +73,17 @@ public protocol MembersHandler: Sendable {
     /// - Returns: The member if found.
     /// - Throws: `MemberError` if member not found, fetch fails, or validation fails.
     func fetch(id memberId: MemberID, expanded: [MemberExpand]) async throws -> Member
+
+    // MARK: - v2 Sync API (preferred)
+
+    /// Lists members using TKT API v2 cursor pagination and optional filters.
+    func fetchAll(query: SyncQuery, filters: MemberListQuery?) async throws -> SyncPage<Member>
+
+    /// Fetches a single member via v2 with optional field selection.
+    func fetch(id: MemberID, query: SyncQuery?) async throws -> Member
+
+    /// Fetches a single member via v2 with optional field selection and server-side expand.
+    func fetch(id: MemberID, query: SyncQuery?, expand: [MemberExpand]) async throws -> Member
 }
 
 /// Default implementation of MembersHandler for Salesforce
@@ -208,5 +219,36 @@ public struct SalesforceMembersHandler: MembersHandler {
             instanceUrl: instanceUrl,
             expanded: expanded
         )
+    }
+
+    public func fetchAll(query: SyncQuery, filters: MemberListQuery?) async throws -> SyncPage<Member> {
+        do {
+            return try await salesforceClient.v2.listMembers(
+                accessToken: accessToken,
+                instanceUrl: instanceUrl,
+                query: query,
+                filters: filters
+            )
+        } catch let error as SyncError {
+            throw MemberError.fetchFailed(error)
+        }
+    }
+
+    public func fetch(id: MemberID, query: SyncQuery?) async throws -> Member {
+        try await fetch(id: id, query: query, expand: [])
+    }
+
+    public func fetch(id: MemberID, query: SyncQuery?, expand: [MemberExpand]) async throws -> Member {
+        do {
+            return try await salesforceClient.v2.getMember(
+                accessToken: accessToken,
+                instanceUrl: instanceUrl,
+                memberId: id,
+                query: query,
+                expand: expand
+            )
+        } catch let error as SyncError {
+            throw MemberError.fetchFailed(error)
+        }
     }
 }

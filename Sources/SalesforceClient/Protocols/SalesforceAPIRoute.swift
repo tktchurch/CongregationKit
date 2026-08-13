@@ -36,6 +36,7 @@ public protocol SalesforceMemberRoutes: SalesforceAPIRoute {
     ///   - pageSize: The page size to fetch (optional, default 50)
     /// - Returns: MemberResponse containing members and pagination info
     /// - Throws: `MemberError` if fetch fails
+    @available(*, deprecated, message: "Use SalesforceClient.v2.listMembers or CongregationKit.members.fetchAll(query:filters:).")
     func fetchAll(accessToken: String, instanceUrl: String, pageNumber: Int?, pageSize: Int?) async throws -> MemberResponse
 
     /// Fetches all members from Salesforce with pagination support (cursor-based, supports nextPageToken)
@@ -47,6 +48,7 @@ public protocol SalesforceMemberRoutes: SalesforceAPIRoute {
     ///   - nextPageToken: The next page token for cursor-based pagination (optional)
     /// - Returns: MemberResponse containing members and pagination info
     /// - Throws: `MemberError` if fetch fails
+    @available(*, deprecated, message: "Use SalesforceClient.v2.listMembers or CongregationKit.members.fetchAll(query:filters:).")
     func fetchAll(accessToken: String, instanceUrl: String, pageNumber: Int?, pageSize: Int?, nextPageToken: String?) async throws
         -> MemberResponse
 
@@ -66,6 +68,7 @@ public protocol SalesforceMemberRoutes: SalesforceAPIRoute {
     ///   - instanceUrl: The Salesforce instance URL
     /// - Returns: MemberResponse containing members and pagination info
     /// - Throws: `MemberError` if fetch fails
+    @available(*, deprecated, message: "Use SalesforceClient.v2.listMembers or CongregationKit.members.fetchAll(query:filters:).")
     func fetch(accessToken: String, instanceUrl: String) async throws -> MemberResponse
 
     /// Fetches a specific member by ID (must start with TKT).
