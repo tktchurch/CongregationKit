@@ -73,6 +73,13 @@ public struct SeekerResponse: Codable, Sendable {
         self.message = nil
     }
 
+    public init(seekers: [Seeker], metadata: Metadata?) {
+        self.seekers = seekers
+        self.metadata = metadata
+        self.error = nil
+        self.message = nil
+    }
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(seekers, forKey: .seekers)

@@ -1,0 +1,16 @@
+{
+  "name": "users/005TEST00000001",
+  "etag": "W/\"jkl012\"",
+  "createTime": "2023-01-01T00:00:00.000Z",
+  "updateTime": "2025-06-01T00:00:00.000Z",
+  "id": "005TEST00000001",
+  "username": "ops.staff",
+  "email": "ops.staff@example.com",
+  "isActive": true,
+  "group": "Adult",
+  "profileName": "Standard User",
+  "userRoleName": "Coordinator",
+  "phone": "+910000000004",
+  "title": "Coordinator",
+  "department": "Operations"
+}

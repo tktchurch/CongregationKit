@@ -49,6 +49,11 @@ public struct CongregationKit: CongregationKitProtocol {
     private let membersHandler: MembersHandler
     private let seekersHandler: SeekersHandler
     private let filesHandler: FilesHandler
+    private let tasksHandler: TasksHandler
+    private let usersHandler: UsersHandler
+    private let coursesHandler: CoursesHandler
+    private let familyRecordsHandler: FamilyRecordsHandler
+    private let spiritualRecordsHandler: SpiritualRecordsHandler
 
     /// Creates a new CongregationKit client and authenticates with Salesforce
     /// - Parameters:
@@ -69,6 +74,31 @@ public struct CongregationKit: CongregationKitProtocol {
             instanceUrl: authResponse.instanceUrl
         )
         self.filesHandler = SalesforceFilesHandler(
+            salesforceClient: salesforceClient,
+            accessToken: authResponse.accessToken,
+            instanceUrl: authResponse.instanceUrl
+        )
+        self.tasksHandler = SalesforceTasksHandler(
+            salesforceClient: salesforceClient,
+            accessToken: authResponse.accessToken,
+            instanceUrl: authResponse.instanceUrl
+        )
+        self.usersHandler = SalesforceUsersHandler(
+            salesforceClient: salesforceClient,
+            accessToken: authResponse.accessToken,
+            instanceUrl: authResponse.instanceUrl
+        )
+        self.coursesHandler = SalesforceCoursesHandler(
+            salesforceClient: salesforceClient,
+            accessToken: authResponse.accessToken,
+            instanceUrl: authResponse.instanceUrl
+        )
+        self.familyRecordsHandler = SalesforceFamilyRecordsHandler(
+            salesforceClient: salesforceClient,
+            accessToken: authResponse.accessToken,
+            instanceUrl: authResponse.instanceUrl
+        )
+        self.spiritualRecordsHandler = SalesforceSpiritualRecordsHandler(
             salesforceClient: salesforceClient,
             accessToken: authResponse.accessToken,
             instanceUrl: authResponse.instanceUrl
@@ -97,6 +127,31 @@ public struct CongregationKit: CongregationKitProtocol {
             accessToken: authResponse.accessToken,
             instanceUrl: authResponse.instanceUrl
         )
+        self.tasksHandler = SalesforceTasksHandler(
+            salesforceClient: salesforceClient,
+            accessToken: authResponse.accessToken,
+            instanceUrl: authResponse.instanceUrl
+        )
+        self.usersHandler = SalesforceUsersHandler(
+            salesforceClient: salesforceClient,
+            accessToken: authResponse.accessToken,
+            instanceUrl: authResponse.instanceUrl
+        )
+        self.coursesHandler = SalesforceCoursesHandler(
+            salesforceClient: salesforceClient,
+            accessToken: authResponse.accessToken,
+            instanceUrl: authResponse.instanceUrl
+        )
+        self.familyRecordsHandler = SalesforceFamilyRecordsHandler(
+            salesforceClient: salesforceClient,
+            accessToken: authResponse.accessToken,
+            instanceUrl: authResponse.instanceUrl
+        )
+        self.spiritualRecordsHandler = SalesforceSpiritualRecordsHandler(
+            salesforceClient: salesforceClient,
+            accessToken: authResponse.accessToken,
+            instanceUrl: authResponse.instanceUrl
+        )
     }
 
     /// The members handler for member operations
@@ -112,5 +167,30 @@ public struct CongregationKit: CongregationKitProtocol {
     /// The files handler for file operations
     public var files: FilesHandler {
         return filesHandler
+    }
+
+    /// Follow-up tasks for church ops work queues (v2).
+    public var tasks: TasksHandler {
+        return tasksHandler
+    }
+
+    /// Church ops staff users (v2).
+    public var users: UsersHandler {
+        return usersHandler
+    }
+
+    /// Course records (v2).
+    public var courses: CoursesHandler {
+        return coursesHandler
+    }
+
+    /// Family information records (v2).
+    public var familyRecords: FamilyRecordsHandler {
+        return familyRecordsHandler
+    }
+
+    /// Spiritual information records (v2).
+    public var spiritualRecords: SpiritualRecordsHandler {
+        return spiritualRecordsHandler
     }
 }

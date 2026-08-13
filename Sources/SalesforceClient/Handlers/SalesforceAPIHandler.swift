@@ -13,6 +13,8 @@ public enum SalesforceAPIConstants {
     /// v2 (paginated)
     public static let memberEndpointV2 = "/services/apexrest/members"
     public static let seekerEndpointV2 = "/services/apexrest/seekers"
+    /// TKT Church API v2 (Google AIP-style sync API)
+    public static let apiV2Base = "/services/apexrest/v2"
     public static let fileDownloadEndpoint = "/services/apexrest/filedownload"
 }
 
@@ -131,6 +133,47 @@ public actor SalesforceAPIHandler {
         let data = Data(body.readableBytesView)
         let jsonData = try JSONDecoder().decode(type, from: data)
         return jsonData
+    }
+
+    /// Processes a v2 API response, mapping HTTP failures to ``SyncError``.
+    public func processV2Response<T: Decodable & Sendable>(_ response: HTTPClientResponse, as type: T.Type) async throws -> T {
+        guard response.status == .ok || response.status == .created else {
+            let body = try await response.body.collect(upTo: 1024 * 1024)
+            let errorMessage = String(buffer: body)
+            if response.status == .preconditionFailed {
+                throw SyncError.preconditionFailed(currentETag: nil)
+            }
+            if errorMessage.contains("Write_Enabled") || errorMessage.contains("writes are disabled") {
+                throw SyncError.writeDisabled
+            }
+            throw SyncError.serverError("HTTP \(response.status.code): \(errorMessage)")
+        }
+        let body = try await response.body.collect(upTo: 1024 * 1024)
+        let data = Data(body.readableBytesView)
+        do {
+            return try JSONDecoder().decode(type, from: data)
+        } catch {
+            throw SyncError.decodingFailed(error)
+        }
+    }
+
+    /// Builds v2 request headers including auth and optional sync write headers.
+    public static func v2Headers(
+        accessToken: String,
+        options: SyncWriteOptions? = nil
+    ) -> HTTPHeaders {
+        var headers: HTTPHeaders = [
+            "Authorization": "Bearer \(accessToken)",
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        ]
+        if let etag = options?.ifMatch {
+            headers.add(name: "If-Match", value: etag)
+        }
+        if let key = options?.idempotencyKey {
+            headers.add(name: "Idempotency-Key", value: key)
+        }
+        return headers
     }
 
     /// Processes a binary response for file downloads

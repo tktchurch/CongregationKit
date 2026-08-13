@@ -184,8 +184,10 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
 
     /// Coding keys for mapping API fields to struct properties
     private enum CodingKeys: String, CodingKey {
-        case maritalStatus = "martialStatus"
-        case weddingAnniversary = "weddingAnniversaryDdMmYyyy"
+        case maritalStatus
+        case martialStatus
+        case weddingAnniversary
+        case weddingAnniversaryDdMmYyyy
         case spouseName
         case numberOfChildren
     }
@@ -207,9 +209,13 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
     /// - Throws: `DecodingError` if the data is corrupted or invalid
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.maritalStatus = try container.decodeIfPresent(MaritalStatus.self, forKey: .maritalStatus)
-        // Parse date from yyyy-MM-dd or ddMMyyyy string if present
-        if let dateString = try container.decodeIfPresent(String.self, forKey: .weddingAnniversary) {
+        self.maritalStatus =
+            try container.decodeIfPresent(MaritalStatus.self, forKey: .maritalStatus)
+            ?? container.decodeIfPresent(MaritalStatus.self, forKey: .martialStatus)
+        let dateString =
+            try container.decodeIfPresent(String.self, forKey: .weddingAnniversary)
+            ?? container.decodeIfPresent(String.self, forKey: .weddingAnniversaryDdMmYyyy)
+        if let dateString {
             let isoFormatter = DateFormatter()
             isoFormatter.dateFormat = "yyyy-MM-dd"
             isoFormatter.locale = Locale(identifier: "en_US_POSIX")
@@ -223,7 +229,13 @@ public struct MaritalInformation: Codable, Equatable, Sendable {
             self._weddingAnniversary = nil
         }
         self.spouseName = try container.decodeIfPresent(String.self, forKey: .spouseName)
-        self.numberOfChildren = try container.decodeIfPresent(Int.self, forKey: .numberOfChildren)
+        if let intVal = try container.decodeIfPresent(Int.self, forKey: .numberOfChildren) {
+            self.numberOfChildren = intVal
+        } else if let doubleVal = try container.decodeIfPresent(Double.self, forKey: .numberOfChildren) {
+            self.numberOfChildren = Int(doubleVal)
+        } else {
+            self.numberOfChildren = nil
+        }
     }
 
     /// Encodes the MaritalInformation instance to an encoder

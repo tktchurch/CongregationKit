@@ -117,6 +117,11 @@ if let anniversary = member.maritalInformation?.weddingAnniversaryInfo {
 - ``MaritalInformation``
 - ``MaritalStatus``
 - ``WeddingAnniversaryInfo``
+- ``Family``
+- ``FamilyTree``
+- ``FamiliesHandler``
+- ``RFID``
+- ``RFIDsHandler``
 
 ### Spiritual Development
 - ``DiscipleshipInformation``
@@ -150,6 +155,22 @@ if let anniversary = member.maritalInformation?.weddingAnniversaryInfo {
 - ``SalesforceCredentials``
 - ``SalesforceAuthResponse``
 - ``SalesforceAuthError``
+
+### TKT API v2 Sync Layer
+- ``SyncQuery``
+- ``SyncPage``
+- ``SyncMetadata``
+- ``SyncWriteOptions``
+- ``SyncError``
+- ``FollowUpTask``
+- ``StaffUser``
+- ``FamilyRecord``
+- ``Course``
+- ``SpiritualRecord``
+
+### DocC Articles
+- ``PeopleTypes``
+- ``DeltaSync``
 
 ### Core Protocols
 - ``MemberDataRepresentable``

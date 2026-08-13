@@ -52,8 +52,12 @@ let package = Package(
             name: "CongregationKitTests",
             dependencies: [
                 "CongregationKit",
+                "Congregation",
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
-            ]
+            ],
+            path: "Tests",
+            sources: ["CongregationKitTests"],
+            resources: [.process("Fixtures")]
         ),
     ]
 )

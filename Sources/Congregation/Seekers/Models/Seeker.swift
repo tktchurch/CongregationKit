@@ -189,7 +189,7 @@ import Foundation
 /// - **56+:** Senior adults
 ///
 /// This classification helps with ministry planning and demographic analysis.
-public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
+public struct Seeker: SeekerDataRepresentable, Equatable, Sendable, SyncMetadataRepresentable {
     /// The unique identifier for the seeker.
     ///
     /// This is the primary identifier for the seeker in the system,
@@ -268,6 +268,42 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
     /// ministry effectiveness tracking.
     public let createdDate: Date?
 
+    /// Last modification time from v2 sync metadata.
+    public let lastModifiedDate: Date?
+
+    /// v2 sync metadata (etag, resource name, timestamps).
+    public let sync: SyncMetadata?
+
+    /// Type-safe seeker ID from v2 (`seekerId`).
+    public let seekerId: SeekerID?
+
+    /// Family name (v2 `familyName`).
+    public let familyName: String?
+
+    /// Gender (v2 `gender`).
+    public let gender: Gender?
+
+    /// Preferred campus (v2 `preferredCampus`).
+    public let preferredCampus: Campus?
+
+    /// Priority (v2 `priority`).
+    public let priority: SeekerPriority?
+
+    /// Call status (v2 `callStatus`).
+    public let callStatus: CallStatus?
+
+    /// First visited date (v2 `firstVisitedDate`).
+    public let firstVisitedDate: Date?
+
+    /// Current address (v2 `currentAddress`).
+    public let currentAddress: String?
+
+    /// Comments (v2 `comments`).
+    public let comments: String?
+
+    /// Assigned owner staff user ID (v2 `ownerId`).
+    public let ownerId: StaffUserID?
+
     /// Creates a new Seeker instance.
     ///
     /// - Parameters:
@@ -297,7 +333,19 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
         maritalStatus: MaritalStatus? = nil,
         preferredLanguage: PreferredLanguage? = nil,
         lostReason: LostReason? = nil,
-        createdDate: Date? = nil
+        createdDate: Date? = nil,
+        lastModifiedDate: Date? = nil,
+        sync: SyncMetadata? = nil,
+        seekerId: SeekerID? = nil,
+        familyName: String? = nil,
+        gender: Gender? = nil,
+        preferredCampus: Campus? = nil,
+        priority: SeekerPriority? = nil,
+        callStatus: CallStatus? = nil,
+        firstVisitedDate: Date? = nil,
+        currentAddress: String? = nil,
+        comments: String? = nil,
+        ownerId: StaffUserID? = nil
     ) {
         self.id = id
         self.lead = lead
@@ -331,6 +379,18 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
         self.preferredLanguage = preferredLanguage
         self.lostReason = lostReason
         self.createdDate = createdDate
+        self.lastModifiedDate = lastModifiedDate
+        self.sync = sync
+        self.seekerId = seekerId
+        self.familyName = familyName
+        self.gender = gender
+        self.preferredCampus = preferredCampus
+        self.priority = priority
+        self.callStatus = callStatus
+        self.firstVisitedDate = firstVisitedDate
+        self.currentAddress = currentAddress
+        self.comments = comments
+        self.ownerId = ownerId
     }
 
     /// Coding keys for mapping API fields to struct properties.
@@ -339,12 +399,17 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
     /// and the struct properties, including fallback options for data consistency.
     enum CodingKeys: String, CodingKey {
         case id
+        case seekerId
         case leadId = "leadIdText"
+        case leadIdV2 = "leadId"
         case fullName = "fullName"
         case nameLocal = "nameLocal"
+        case name
+        case familyName
         case email = "email"
         case emailAlt = "emailAlt"
         case phone = "contactNumberMobile"
+        case phoneV2 = "phone"
         case dateOfBirth
         case ageGroup = "age"
         case area
@@ -353,7 +418,11 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable {
         case maritalStatus
         case preferredLanguage
         case createdDate
+        case createTime
+        case updateTime
         case lostReason = "lostReason"
+        case gender, preferredCampus, priority, callStatus, firstVisitedDate, currentAddress, comments, ownerId
+        case etag
     }
 
     /// The seeker's age, calculated from dateOfBirth if available.
@@ -387,8 +456,11 @@ extension Seeker: Codable {
 
         // Top-level seeker id
         let id = try container.decodeIfPresent(String.self, forKey: .id)
-        // Lead id from leadIdText
-        let leadId = try container.decodeIfPresent(String.self, forKey: .leadId)
+        let seekerId = (try container.decodeIfPresent(String.self, forKey: .seekerId)).flatMap(SeekerID.init(rawValue:))
+        // Lead id from v1 leadIdText or v2 leadId
+        let leadId =
+            try container.decodeIfPresent(String.self, forKey: .leadId)
+            ?? container.decodeIfPresent(String.self, forKey: .leadIdV2)
         let leadStatus: LeadStatus? = {
             if let rawValue = try? container.decodeIfPresent(String.self, forKey: .leadStatus),
                 let value = LeadStatus(rawValue: rawValue)
@@ -403,23 +475,21 @@ extension Seeker: Codable {
             }
             return nil
         }()
-        // Prefer nameLocal, fallback to fullName
+        // Prefer v2 name, then nameLocal, then fullName
+        let displayName = try container.decodeIfPresent(String.self, forKey: .name)
         let fullName =
-            (try? container.decodeIfPresent(String.self, forKey: .nameLocal))
+            (displayName?.contains("/") == false ? displayName : nil)
+            ?? (try? container.decodeIfPresent(String.self, forKey: .nameLocal))
             ?? (try? container.decodeIfPresent(String.self, forKey: .fullName))
         // Prefer emailAlt, fallback to email
         let email =
             (try? container.decodeIfPresent(String.self, forKey: .emailAlt))
             ?? (try? container.decodeIfPresent(String.self, forKey: .email))
-        let phone = try container.decodeIfPresent(String.self, forKey: .phone)
+        let phone =
+            try container.decodeIfPresent(String.self, forKey: .phoneV2)
+            ?? container.decodeIfPresent(String.self, forKey: .phone)
         let ageGroup = try container.decodeIfPresent(String.self, forKey: .ageGroup)
-        let dateOfBirth: Date? = {
-            if let dateString = try? container.decodeIfPresent(String.self, forKey: .dateOfBirth) {
-                let formatter = ISO8601DateFormatter()
-                return formatter.date(from: dateString)
-            }
-            return nil
-        }()
+        let dateOfBirth = SyncDateCoding.decode(from: try container.decodeIfPresent(String.self, forKey: .dateOfBirth))
         let area = try container.decodeIfPresent(String.self, forKey: .area)
 
         let typeOfEntry: TypeOfEntry? = {
@@ -440,13 +510,31 @@ extension Seeker: Codable {
             return nil
         }()
 
+        let createTimeString = try container.decodeIfPresent(String.self, forKey: .createTime)
+        let updateTimeString = try container.decodeIfPresent(String.self, forKey: .updateTime)
         let createdDate: Date? = {
+            if let parsed = SyncDateCoding.decode(from: createTimeString) { return parsed }
             if let dateString = try? container.decodeIfPresent(String.self, forKey: .createdDate) {
-                let formatter = ISO8601DateFormatter()
-                return formatter.date(from: dateString)
+                return SyncDateCoding.decode(from: dateString)
             }
             return nil
         }()
+        let lastModifiedDate = SyncDateCoding.decode(from: updateTimeString)
+        let sync = SyncMetadata(
+            name: displayName?.contains("/") == true ? displayName : nil,
+            etag: try container.decodeIfPresent(String.self, forKey: .etag),
+            createTime: SyncDateCoding.decode(from: createTimeString),
+            updateTime: SyncDateCoding.decode(from: updateTimeString)
+        )
+        let familyName = try container.decodeIfPresent(String.self, forKey: .familyName)
+        let gender = try container.decodeIfPresent(Gender.self, forKey: .gender)
+        let preferredCampus = try container.decodeIfPresent(Campus.self, forKey: .preferredCampus)
+        let priority = try container.decodeIfPresent(SeekerPriority.self, forKey: .priority)
+        let callStatus = try container.decodeIfPresent(CallStatus.self, forKey: .callStatus)
+        let firstVisitedDate = SyncDateCoding.decode(from: try container.decodeIfPresent(String.self, forKey: .firstVisitedDate))
+        let currentAddress = try container.decodeIfPresent(String.self, forKey: .currentAddress)
+        let comments = try container.decodeIfPresent(String.self, forKey: .comments)
+        let ownerId = (try container.decodeIfPresent(String.self, forKey: .ownerId)).flatMap(StaffUserID.init(rawValue:))
 
         let preferredLanguage: PreferredLanguage? = {
             if let rawValue = try? container.decodeIfPresent(String.self, forKey: .preferredLanguage),
@@ -479,7 +567,19 @@ extension Seeker: Codable {
             maritalStatus: maritalStatus,
             preferredLanguage: preferredLanguage,
             lostReason: lostReason,
-            createdDate: createdDate
+            createdDate: createdDate,
+            lastModifiedDate: lastModifiedDate,
+            sync: sync,
+            seekerId: seekerId,
+            familyName: familyName,
+            gender: gender,
+            preferredCampus: preferredCampus,
+            priority: priority,
+            callStatus: callStatus,
+            firstVisitedDate: firstVisitedDate,
+            currentAddress: currentAddress,
+            comments: comments,
+            ownerId: ownerId
         )
     }
 
@@ -499,6 +599,39 @@ extension Seeker: Codable {
         try container.encodeIfPresent(preferredLanguage, forKey: .preferredLanguage)
         try container.encodeIfPresent(createdDate, forKey: .createdDate)
         try container.encodeIfPresent(lostReason, forKey: .lostReason)
+    }
+}
+
+/// Seeker follow-up priority from Salesforce `Lead__c.Priority__c`.
+public enum SeekerPriority: String, Codable, Sendable, CaseIterable {
+    case high = "High"
+    case medium = "Medium"
+    case low = "Low"
+}
+
+/// Call outcome from Salesforce `Lead__c.Call_Status__c`.
+public enum CallStatus: String, Codable, Sendable, CaseIterable {
+    case completed = "Completed"
+    case notAnswered = "Not Answered"
+    case switchedOff = "Switched Off"
+    case wrongNumber = "Wrong Number"
+    case callLater = "Call Later"
+    case numberNotInService = "Number not in service"
+    case busy = "Busy"
+    case notReachable = "Not reachable"
+    case numberDoesNotExist = "Number does not exist"
+    case callBack = "Call back"
+    case unknown
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let value = try container.decode(String.self).trimmingCharacters(in: .whitespacesAndNewlines)
+        self = CallStatus(rawValue: value) ?? .unknown
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(self == .unknown ? "" : rawValue)
     }
 }
 

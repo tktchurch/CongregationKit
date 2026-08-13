@@ -83,9 +83,13 @@ let members = try await salesforce.members.fetchAll(
 
 ### Available Services
 - ``SalesforceClient/auth``
-- ``SalesforceClient/members``
-- ``SalesforceClient/seekers``
+- ``SalesforceClient/members`` (deprecated — use ``SalesforceClient/v2``)
+- ``SalesforceClient/seekers`` (deprecated — use ``SalesforceClient/v2``)
 - ``SalesforceClient/files``
+- ``SalesforceClient/v2``
+
+### DocC Articles
+- ``V2Transport``
 
 ### Data Models
 - ``Member``

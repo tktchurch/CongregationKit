@@ -75,6 +75,17 @@ public protocol SeekersHandler: Sendable {
     /// - Returns: SeekerResponse containing the created seeker
     /// - Throws: `SeekerError` if operation fails
     func create(_ seeker: Seeker) async throws -> SeekerResponse
+
+    // MARK: - v2 Sync API (preferred)
+
+    /// Lists seekers using TKT API v2 cursor pagination and optional filters.
+    func fetchAll(query: SyncQuery, filters: SeekerListQuery?) async throws -> SyncPage<Seeker>
+
+    /// Fetches a single seeker via v2.
+    func fetch(id: SeekerID, query: SyncQuery?) async throws -> Seeker
+
+    /// Creates a seeker via v2 with optional write headers.
+    func create(_ seeker: Seeker, options: SyncWriteOptions?) async throws -> Seeker
 }
 
 /// Default implementation of SeekersHandler for Salesforce
@@ -181,5 +192,44 @@ public struct SalesforceSeekersHandler: SeekersHandler {
             accessToken: accessToken,
             instanceUrl: instanceUrl
         )
+    }
+
+    public func fetchAll(query: SyncQuery, filters: SeekerListQuery?) async throws -> SyncPage<Seeker> {
+        do {
+            return try await salesforceClient.v2.listSeekers(
+                accessToken: accessToken,
+                instanceUrl: instanceUrl,
+                query: query,
+                filters: filters
+            )
+        } catch let error as SyncError {
+            throw SeekerError.fetchFailed(error)
+        }
+    }
+
+    public func fetch(id: SeekerID, query: SyncQuery?) async throws -> Seeker {
+        do {
+            return try await salesforceClient.v2.getSeeker(
+                accessToken: accessToken,
+                instanceUrl: instanceUrl,
+                seekerId: id,
+                query: query
+            )
+        } catch let error as SyncError {
+            throw SeekerError.fetchFailed(error)
+        }
+    }
+
+    public func create(_ seeker: Seeker, options: SyncWriteOptions?) async throws -> Seeker {
+        do {
+            return try await salesforceClient.v2.createSeeker(
+                accessToken: accessToken,
+                instanceUrl: instanceUrl,
+                seeker: seeker,
+                options: options
+            )
+        } catch let error as SyncError {
+            throw SeekerError.fetchFailed(error)
+        }
     }
 }

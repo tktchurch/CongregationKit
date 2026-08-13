@@ -104,6 +104,13 @@ public struct MemberResponse: Codable, Sendable {
         self.error = nil
         self.message = nil
     }
+
+    public init(members: [Member], metadata: Metadata?) {
+        self.members = members
+        self.metadata = metadata
+        self.error = nil
+        self.message = nil
+    }
 }
 
 extension MemberResponse {

@@ -1,8 +1,13 @@
 import Foundation
 
-/// Represents an RFID card/tag within the church congregation system.
+/// An RFID card/tag in the congregation domain (framework-agnostic).
 ///
-/// An RFID card provides contactless identification for members, enabling
+/// Salesforce v2 `/families` only exposes ``FamilyRecord/cardIssued`` (a boolean).
+/// That snapshot is not a substitute for this model: tag number, status, issue/
+/// activate/block, and expiry live here. Implement ``RFIDsHandler`` in the app
+/// or a future backend — CongregationKit does not map RFID to Salesforce v2.
+///
+/// RFID cards provide contactless identification for members, enabling
 /// automated attendance tracking, access control, and event check-ins.
 ///
 /// ## Overview
