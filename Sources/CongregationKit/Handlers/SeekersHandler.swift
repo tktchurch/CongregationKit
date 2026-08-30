@@ -82,10 +82,19 @@ public protocol SeekersHandler: Sendable {
     func fetchAll(query: SyncQuery, filters: SeekerListQuery?) async throws -> SyncPage<Seeker>
 
     /// Fetches a single seeker via v2.
-    func fetch(id: SeekerID, query: SyncQuery?) async throws -> Seeker
+    func fetch(id: String, query: SyncQuery?) async throws -> Seeker
 
     /// Creates a seeker via v2 with optional write headers.
     func create(_ seeker: Seeker, options: SyncWriteOptions?) async throws -> Seeker
+
+    /// Salesforce Field History plus Path for one seeker (`GET /v2/seekers/{id}/history`).
+    func listHistory(id: String) async throws -> SeekerHistoryPage
+
+    /// Advances `Lead_status__c` to the next Path stage (`POST /v2/seekers/{id}:completeLeadStatus`).
+    func completeLeadStatus(id: String, options: SyncWriteOptions?) async throws -> Seeker
+
+    /// Patches seeker fields via v2 (`PATCH /v2/seekers/{id}`).
+    func update(id: String, body: [String: String], options: SyncWriteOptions?) async throws -> Seeker
 }
 
 /// Default implementation of SeekersHandler for Salesforce
@@ -207,7 +216,7 @@ public struct SalesforceSeekersHandler: SeekersHandler {
         }
     }
 
-    public func fetch(id: SeekerID, query: SyncQuery?) async throws -> Seeker {
+    public func fetch(id: String, query: SyncQuery?) async throws -> Seeker {
         do {
             return try await salesforceClient.v2.getSeeker(
                 accessToken: accessToken,
@@ -226,6 +235,49 @@ public struct SalesforceSeekersHandler: SeekersHandler {
                 accessToken: accessToken,
                 instanceUrl: instanceUrl,
                 seeker: seeker,
+                options: options
+            )
+        } catch let error as SyncError {
+            throw SeekerError.fetchFailed(error)
+        }
+    }
+
+    public func listHistory(id: String) async throws -> SeekerHistoryPage {
+        do {
+            return try await salesforceClient.v2.listSeekerHistory(
+                accessToken: accessToken,
+                instanceUrl: instanceUrl,
+                seekerId: id
+            )
+        } catch let error as SyncError {
+            throw SeekerError.fetchFailed(error)
+        }
+    }
+
+    public func completeLeadStatus(id: String, options: SyncWriteOptions?) async throws -> Seeker {
+        do {
+            return try await salesforceClient.v2.completeLeadStatus(
+                accessToken: accessToken,
+                instanceUrl: instanceUrl,
+                seekerId: id,
+                options: options
+            )
+        } catch let error as SyncError {
+            throw SeekerError.fetchFailed(error)
+        }
+    }
+
+    public func update(
+        id: String,
+        body: [String: String],
+        options: SyncWriteOptions?
+    ) async throws -> Seeker {
+        do {
+            return try await salesforceClient.v2.updateSeeker(
+                accessToken: accessToken,
+                instanceUrl: instanceUrl,
+                seekerId: id,
+                body: body,
                 options: options
             )
         } catch let error as SyncError {

@@ -23,7 +23,7 @@ public struct FamilyRecord: Decodable, Identifiable, Sendable, SyncMetadataRepre
     public let sync: SyncMetadata?
     public let displayName: String?
     public let memberId: MemberID?
-    public let seekerId: SeekerID?
+    public let seekerId: String?
     public let attendeeId: String?
     public let spmId: String?
     public let dateOfBirth: Date?
@@ -36,7 +36,7 @@ public struct FamilyRecord: Decodable, Identifiable, Sendable, SyncMetadataRepre
         sync: SyncMetadata? = nil,
         displayName: String? = nil,
         memberId: MemberID? = nil,
-        seekerId: SeekerID? = nil,
+        seekerId: String? = nil,
         attendeeId: String? = nil,
         spmId: String? = nil,
         dateOfBirth: Date? = nil,
@@ -68,7 +68,7 @@ public struct FamilyRecord: Decodable, Identifiable, Sendable, SyncMetadataRepre
         id = try container.decodeIfPresent(String.self, forKey: .id)
         displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
         memberId = (try container.decodeIfPresent(String.self, forKey: .memberId)).flatMap(MemberID.init(rawValue:))
-        seekerId = (try container.decodeIfPresent(String.self, forKey: .seekerId)).flatMap(SeekerID.init(rawValue:))
+        seekerId = try container.decodeIfPresent(String.self, forKey: .seekerId)
         attendeeId = try container.decodeIfPresent(String.self, forKey: .attendeeId)
         spmId = try container.decodeIfPresent(String.self, forKey: .spmId)
         dateOfBirth = SyncDateCoding.decode(from: try container.decodeIfPresent(String.self, forKey: .dateOfBirth))

@@ -135,6 +135,8 @@ public enum SeekerError: Error, LocalizedError, Sendable {
     case invalidSeekerData
     case fetchFailed(Error)
     case invalidIdentifier
+    /// The provided string is not a valid internal seeker ID (must begin with `SKR`).
+    case invalidSeekerID
     case invalidMaritalStatus(String)
 
     public var errorDescription: String? {
@@ -150,6 +152,8 @@ public enum SeekerError: Error, LocalizedError, Sendable {
         case .invalidMaritalStatus(let status):
             return
                 "Invalid marital status '\(status)' for seeker. Valid values are: Married, Separated, Widowed, Unmarried, Engaged. Note: Use 'Unmarried' instead of 'Single' for seekers."
+        case .invalidSeekerID:
+            return "Seeker ID must begin with 'SKR' (e.g. SKR00001)."
         }
     }
 }
