@@ -274,8 +274,10 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable, SyncMetadata
     /// v2 sync metadata (etag, resource name, timestamps).
     public let sync: SyncMetadata?
 
-    /// Type-safe seeker ID from v2 (`seekerId`).
-    public let seekerId: SeekerID?
+    /// Raw Salesforce external seeker ID from v2 (`seekerId` / `Seeker_ID__c`).
+    /// This is the Salesforce record identifier. The CRM-internal `SKR#####` identifier
+    /// is stored separately on the backend as `internalId`.
+    public let seekerId: String?
 
     /// Family name (v2 `familyName`).
     public let familyName: String?
@@ -303,6 +305,16 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable, SyncMetadata
 
     /// Assigned owner staff user ID (v2 `ownerId`).
     public let ownerId: StaffUserID?
+
+    /// Campus label from Salesforce when it is not a legacy `Campus` enum value
+    /// (for example `Central - Secunderabad`).
+    public let campusLabel: String?
+
+    /// Lead source from Salesforce v2 `leadSource` (`Lead_source__c`).
+    public let leadSource: String?
+
+    /// Raw `leadStatus` string from Salesforce before enum parsing (preserves legacy values).
+    public let leadStatusRaw: String?
 
     /// Creates a new Seeker instance.
     ///
@@ -336,7 +348,7 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable, SyncMetadata
         createdDate: Date? = nil,
         lastModifiedDate: Date? = nil,
         sync: SyncMetadata? = nil,
-        seekerId: SeekerID? = nil,
+        seekerId: String? = nil,
         familyName: String? = nil,
         gender: Gender? = nil,
         preferredCampus: Campus? = nil,
@@ -345,7 +357,10 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable, SyncMetadata
         firstVisitedDate: Date? = nil,
         currentAddress: String? = nil,
         comments: String? = nil,
-        ownerId: StaffUserID? = nil
+        ownerId: StaffUserID? = nil,
+        campusLabel: String? = nil,
+        leadSource: String? = nil,
+        leadStatusRaw: String? = nil
     ) {
         self.id = id
         self.lead = lead
@@ -391,6 +406,9 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable, SyncMetadata
         self.currentAddress = currentAddress
         self.comments = comments
         self.ownerId = ownerId
+        self.campusLabel = campusLabel
+        self.leadSource = leadSource
+        self.leadStatusRaw = leadStatusRaw
     }
 
     /// Coding keys for mapping API fields to struct properties.
@@ -414,6 +432,7 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable, SyncMetadata
         case ageGroup = "age"
         case area
         case leadStatus
+        case leadSource
         case typeOfEntry
         case maritalStatus
         case preferredLanguage
@@ -421,7 +440,7 @@ public struct Seeker: SeekerDataRepresentable, Equatable, Sendable, SyncMetadata
         case createTime
         case updateTime
         case lostReason = "lostReason"
-        case gender, preferredCampus, priority, callStatus, firstVisitedDate, currentAddress, comments, ownerId
+        case gender, preferredCampus, campus, priority, callStatus, firstVisitedDate, currentAddress, comments, ownerId
         case etag
     }
 
@@ -456,19 +475,21 @@ extension Seeker: Codable {
 
         // Top-level seeker id
         let id = try container.decodeIfPresent(String.self, forKey: .id)
-        let seekerId = (try container.decodeIfPresent(String.self, forKey: .seekerId)).flatMap(SeekerID.init(rawValue:))
+        let seekerId = try container.decodeIfPresent(String.self, forKey: .seekerId)
         // Lead id from v1 leadIdText or v2 leadId
         let leadId =
             try container.decodeIfPresent(String.self, forKey: .leadId)
             ?? container.decodeIfPresent(String.self, forKey: .leadIdV2)
+        let leadStatusRaw = try container.decodeIfPresent(String.self, forKey: .leadStatus)
         let leadStatus: LeadStatus? = {
-            if let rawValue = try? container.decodeIfPresent(String.self, forKey: .leadStatus),
-                let value = LeadStatus(rawValue: rawValue)
-            {
-                return value
+            guard let rawValue = leadStatusRaw else { return nil }
+            let parsed = LeadStatus.parse(rawValue)
+            if parsed == .unknown, rawValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return nil
             }
-            return nil
+            return parsed
         }()
+        let leadSource = try container.decodeIfPresent(String.self, forKey: .leadSource)
         let lead: Lead? = {
             if leadId != nil || leadStatus != nil {
                 return Lead(id: leadId, status: leadStatus)
@@ -527,10 +548,13 @@ extension Seeker: Codable {
             updateTime: SyncDateCoding.decode(from: updateTimeString)
         )
         let familyName = try container.decodeIfPresent(String.self, forKey: .familyName)
-        let gender = try container.decodeIfPresent(Gender.self, forKey: .gender)
-        let preferredCampus = try container.decodeIfPresent(Campus.self, forKey: .preferredCampus)
-        let priority = try container.decodeIfPresent(SeekerPriority.self, forKey: .priority)
-        let callStatus = try container.decodeIfPresent(CallStatus.self, forKey: .callStatus)
+        let gender = try? container.decodeIfPresent(Gender.self, forKey: .gender)
+        let preferredCampus = try? container.decodeIfPresent(Campus.self, forKey: .preferredCampus)
+        let campusLabel =
+            (try? container.decodeIfPresent(String.self, forKey: .campus))
+            ?? (preferredCampus == nil ? (try? container.decodeIfPresent(String.self, forKey: .preferredCampus)) : nil)
+        let priority = try? container.decodeIfPresent(SeekerPriority.self, forKey: .priority)
+        let callStatus = try? container.decodeIfPresent(CallStatus.self, forKey: .callStatus)
         let firstVisitedDate = SyncDateCoding.decode(from: try container.decodeIfPresent(String.self, forKey: .firstVisitedDate))
         let currentAddress = try container.decodeIfPresent(String.self, forKey: .currentAddress)
         let comments = try container.decodeIfPresent(String.self, forKey: .comments)
@@ -579,7 +603,10 @@ extension Seeker: Codable {
             firstVisitedDate: firstVisitedDate,
             currentAddress: currentAddress,
             comments: comments,
-            ownerId: ownerId
+            ownerId: ownerId,
+            campusLabel: campusLabel,
+            leadSource: leadSource,
+            leadStatusRaw: leadStatusRaw
         )
     }
 
@@ -587,7 +614,8 @@ extension Seeker: Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encodeIfPresent(id, forKey: .id)
         try container.encodeIfPresent(lead?.id, forKey: .id)
-        try container.encodeIfPresent(lead?.status, forKey: .leadStatus)
+        try container.encodeIfPresent(leadStatusRaw ?? lead?.status?.rawValue, forKey: .leadStatus)
+        try container.encodeIfPresent(leadSource, forKey: .leadSource)
         try container.encodeIfPresent(fullName, forKey: .fullName)
         try container.encodeIfPresent(email, forKey: .email)
         try container.encodeIfPresent(phone, forKey: .phone)
@@ -748,10 +776,13 @@ extension MaritalStatus {
 }
 
 /// Represents the status of a lead (e.g., Attempted, Follow-up, Converted).
+///
+/// Salesforce `Lead__c.Lead_status__c` API names are the raw values. The Path
+/// assistant uses picklist **labels** (`Follow-up` displays as `1st Follow up`).
 public enum LeadStatus: String, Codable, CaseIterable, Sendable {
     /// The lead was attempted.
     case attempted = "Attempted"
-    /// The lead is in follow-up.
+    /// The lead is in first follow-up (`Follow-up` API name, `1st Follow up` label).
     case followUp = "Follow-up"
     /// The lead is in second follow-up.
     case secondFollowUp = "2nd Follow up"
@@ -770,11 +801,35 @@ public enum LeadStatus: String, Codable, CaseIterable, Sendable {
     /// Unknown lead status.
     case unknown
 
-    /// User-friendly display name for the lead status.
+    /// Active Salesforce Path stages, in picklist order.
+    public static let pathOrder: [LeadStatus] = [
+        .attempted, .followUp, .secondFollowUp, .thirdFollowUp, .fourthFollowUp,
+        .repeated, .lost, .converted,
+    ]
+
+    /// Parses Salesforce API names and Path labels (`1st Follow up` → ``followUp``).
+    public static func parse(_ raw: String?) -> LeadStatus {
+        let value = raw?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        switch value {
+        case "Attempted": return .attempted
+        case "Follow-up", "Follow up", "1st Follow up", "1st Follow-up": return .followUp
+        case "2nd Follow up", "2nd Follow-up": return .secondFollowUp
+        case "3rd Follow up", "3rd Follow-up": return .thirdFollowUp
+        case "4th Follow up", "4th Follow-up": return .fourthFollowUp
+        case "Lost": return .lost
+        case "Converted": return .converted
+        case "Do not contact", "Do Not Contact": return .doNotContact
+        case "Repeated": return .repeated
+        case "": return .unknown
+        default: return LeadStatus(rawValue: value) ?? .unknown
+        }
+    }
+
+    /// Salesforce Path / picklist label. Always prefer this over ``rawValue`` in UI.
     public var displayName: String {
         switch self {
         case .attempted: return "Attempted"
-        case .followUp: return "Follow-up"
+        case .followUp: return "1st Follow up"
         case .secondFollowUp: return "2nd Follow up"
         case .thirdFollowUp: return "3rd Follow up"
         case .fourthFollowUp: return "4th Follow up"
@@ -783,6 +838,42 @@ public enum LeadStatus: String, Codable, CaseIterable, Sendable {
         case .doNotContact: return "Do not contact"
         case .repeated: return "Repeated"
         case .unknown: return "Unknown"
+        }
+    }
+
+    /// Whether this status is a Path terminal (`Lost` still has `Converted` after it).
+    public var isPathComplete: Bool {
+        self == .converted || self == .unknown
+    }
+
+    /// Next Path stage after marking the current status complete, if any.
+    public var nextOnPath: LeadStatus? {
+        guard let index = Self.pathOrder.firstIndex(of: self), index + 1 < Self.pathOrder.count else {
+            return nil
+        }
+        return Self.pathOrder[index + 1]
+    }
+
+    /// Salesforce-style Path steps for this current status, with labels always present.
+    public static func path(current: LeadStatus?) -> [LeadStatusPathStep] {
+        let currentStatus = current ?? .unknown
+        let currentIndex = pathOrder.firstIndex(of: currentStatus)
+        return pathOrder.map { stage in
+            let state: LeadStatusPathStep.State
+            if let currentIndex, let stageIndex = pathOrder.firstIndex(of: stage) {
+                if stageIndex < currentIndex {
+                    state = .completed
+                } else if stageIndex == currentIndex {
+                    state = .current
+                } else {
+                    state = .upcoming
+                }
+            } else if currentStatus == .doNotContact {
+                state = .upcoming
+            } else {
+                state = .upcoming
+            }
+            return LeadStatusPathStep(status: stage, state: state)
         }
     }
 
@@ -805,20 +896,7 @@ public enum LeadStatus: String, Codable, CaseIterable, Sendable {
     /// Creates a new instance from a decoder.
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        let value = try container.decode(String.self).trimmingCharacters(in: .whitespacesAndNewlines)
-        switch value {
-        case "Attempted": self = .attempted
-        case "Follow-up": self = .followUp
-        case "2nd Follow up": self = .secondFollowUp
-        case "3rd Follow up": self = .thirdFollowUp
-        case "4th Follow up": self = .fourthFollowUp
-        case "Lost": self = .lost
-        case "Converted": self = .converted
-        case "Do not contact": self = .doNotContact
-        case "Repeated": self = .repeated
-        case "": self = .unknown
-        default: self = .unknown
-        }
+        self = LeadStatus.parse(try container.decode(String.self))
     }
 
     /// Encodes this value into the given encoder.

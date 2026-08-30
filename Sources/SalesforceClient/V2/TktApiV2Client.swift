@@ -68,12 +68,12 @@ public struct TktApiV2Client: Sendable {
     public func getSeeker(
         accessToken: String,
         instanceUrl: String,
-        seekerId: SeekerID,
+        seekerId: String,
         query: SyncQuery?
     ) async throws -> Seeker {
         let params = query?.asQueryParameters() ?? [:]
         return try await get(
-            path: v2URL(instanceUrl: instanceUrl, collection: "seekers", id: seekerId.rawValue),
+            path: v2URL(instanceUrl: instanceUrl, collection: "seekers", id: seekerId),
             queryParams: params,
             accessToken: accessToken,
             as: Seeker.self
@@ -91,6 +91,55 @@ public struct TktApiV2Client: Sendable {
             method: .POST,
             path: v2URL(instanceUrl: instanceUrl, collection: "seekers"),
             body: body,
+            headers: SalesforceAPIHandler.v2Headers(accessToken: accessToken, options: options)
+        )
+        return try await handler.processV2Response(response, as: Seeker.self)
+    }
+
+    public func listSeekerHistory(
+        accessToken: String,
+        instanceUrl: String,
+        seekerId: String
+    ) async throws -> SeekerHistoryPage {
+        try await get(
+            path: v2URL(instanceUrl: instanceUrl, collection: "seekers", id: seekerId, suffix: "history"),
+            queryParams: [:],
+            accessToken: accessToken,
+            as: SeekerHistoryPage.self
+        )
+    }
+
+    public func completeLeadStatus(
+        accessToken: String,
+        instanceUrl: String,
+        seekerId: String,
+        options: SyncWriteOptions?
+    ) async throws -> Seeker {
+        let response = try await handler.sendRequest(
+            method: .POST,
+            path: v2URL(instanceUrl: instanceUrl, collection: "seekers", id: "\(seekerId):completeLeadStatus"),
+            headers: SalesforceAPIHandler.v2Headers(accessToken: accessToken, options: options)
+        )
+        return try await handler.processV2Response(response, as: Seeker.self)
+    }
+
+    public func updateSeeker(
+        accessToken: String,
+        instanceUrl: String,
+        seekerId: String,
+        body: [String: String],
+        options: SyncWriteOptions?
+    ) async throws -> Seeker {
+        var queryParams: [String: String] = [:]
+        if let mask = options?.updateMask, !mask.isEmpty {
+            queryParams["updateMask"] = mask.joined(separator: ",")
+        }
+        let payload = try encodeJSON(body)
+        let response = try await handler.sendRequest(
+            method: .PATCH,
+            path: v2URL(instanceUrl: instanceUrl, collection: "seekers", id: seekerId),
+            queryParams: queryParams.isEmpty ? nil : queryParams,
+            body: payload,
             headers: SalesforceAPIHandler.v2Headers(accessToken: accessToken, options: options)
         )
         return try await handler.processV2Response(response, as: Seeker.self)
@@ -146,12 +195,12 @@ public struct TktApiV2Client: Sendable {
     public func listTasksForSeeker(
         accessToken: String,
         instanceUrl: String,
-        seekerId: SeekerID,
+        seekerId: String,
         query: SyncQuery
     ) async throws -> SyncPage<FollowUpTask> {
         let params = query.asQueryParameters()
         let envelope: FollowUpTaskListEnvelope = try await get(
-            path: v2URL(instanceUrl: instanceUrl, collection: "seekers", id: seekerId.rawValue, suffix: "tasks"),
+            path: v2URL(instanceUrl: instanceUrl, collection: "seekers", id: seekerId, suffix: "tasks"),
             queryParams: params,
             accessToken: accessToken,
             as: FollowUpTaskListEnvelope.self

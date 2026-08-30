@@ -107,8 +107,11 @@ public protocol MembersSyncHandler: Sendable {
 /// v2 sync-capable seeker operations.
 public protocol SeekersSyncHandler: Sendable {
     func fetchAll(query: SyncQuery, filters: SeekerListQuery?) async throws -> SyncPage<Seeker>
-    func fetch(id: SeekerID, query: SyncQuery?) async throws -> Seeker
+    func fetch(id: String, query: SyncQuery?) async throws -> Seeker
     func create(_ seeker: Seeker, options: SyncWriteOptions?) async throws -> Seeker
+    func listHistory(id: String) async throws -> SeekerHistoryPage
+    func completeLeadStatus(id: String, options: SyncWriteOptions?) async throws -> Seeker
+    func update(id: String, body: [String: String], options: SyncWriteOptions?) async throws -> Seeker
 }
 
 /// v2 follow-up task operations for church ops work queues.
@@ -116,7 +119,7 @@ public protocol TasksHandler: Sendable {
     func fetchAll(query: SyncQuery, filters: FollowUpTaskQuery?) async throws -> SyncPage<FollowUpTask>
     func fetch(id: FollowUpTaskID, query: SyncQuery?) async throws -> FollowUpTask
     func fetchForMember(memberId: MemberID, query: SyncQuery) async throws -> SyncPage<FollowUpTask>
-    func fetchForSeeker(seekerId: SeekerID, query: SyncQuery) async throws -> SyncPage<FollowUpTask>
+    func fetchForSeeker(seekerId: String, query: SyncQuery) async throws -> SyncPage<FollowUpTask>
     func fetchForStaffUser(staffUserId: StaffUserID, query: SyncQuery) async throws -> SyncPage<FollowUpTask>
     func complete(id: FollowUpTaskID, options: SyncWriteOptions?) async throws -> FollowUpTask
     func reassign(id: FollowUpTaskID, ownerId: StaffUserID, options: SyncWriteOptions?) async throws -> FollowUpTask

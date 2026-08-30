@@ -247,6 +247,8 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable, SyncMetada
     public let primaryDepartment: PrimaryDepartment?
     /// Linked lead ID (v2 `leadId`).
     public let leadId: String?
+    /// Assigned owner staff user ID (v2 `ownerId` / Salesforce OwnerId).
+    public let ownerId: StaffUserID?
     /// Legacy identifier (v2 `legacyId`).
     public let legacyId: String?
     /// Member description (v2 `description`).
@@ -348,6 +350,7 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable, SyncMetada
         permanentAddress: String? = nil,
         primaryDepartment: PrimaryDepartment? = nil,
         leadId: String? = nil,
+        ownerId: StaffUserID? = nil,
         legacyId: String? = nil,
         memberDescription: String? = nil,
         family: [FamilyRecord]? = nil,
@@ -400,6 +403,7 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable, SyncMetada
         self.permanentAddress = permanentAddress
         self.primaryDepartment = primaryDepartment
         self.leadId = leadId
+        self.ownerId = ownerId
         self.legacyId = legacyId
         self.memberDescription = memberDescription
         self.family = family
@@ -447,6 +451,7 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable, SyncMetada
         permanentAddress: String? = nil,
         primaryDepartment: PrimaryDepartment? = nil,
         leadId: String? = nil,
+        ownerId: StaffUserID? = nil,
         legacyId: String? = nil,
         memberDescription: String? = nil,
         family: [FamilyRecord]? = nil,
@@ -499,6 +504,7 @@ public struct Member: Codable, Identifiable, MemberDataRepresentable, SyncMetada
         self.permanentAddress = permanentAddress
         self.primaryDepartment = primaryDepartment
         self.leadId = leadId
+        self.ownerId = ownerId
         self.legacyId = legacyId
         self.memberDescription = memberDescription
         self.family = family
@@ -529,6 +535,7 @@ extension Member {
             case description
             case family, spiritualRecords, courses, tasks
             case maritalStatus, weddingAnniversary
+            case ownerId
         }
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let id = try container.decodeIfPresent(String.self, forKey: .id)
@@ -595,6 +602,7 @@ extension Member {
         let permanentAddress = try container.decodeIfPresent(String.self, forKey: .permanentAddress)
         let primaryDepartment = try container.decodeIfPresent(PrimaryDepartment.self, forKey: .primaryDepartment)
         let leadId = try container.decodeIfPresent(String.self, forKey: .leadId)
+        let ownerId = (try container.decodeIfPresent(String.self, forKey: .ownerId)).flatMap(StaffUserID.init(rawValue:))
         let legacyId = try container.decodeIfPresent(String.self, forKey: .legacyId)
         let memberDescription = try container.decodeIfPresent(String.self, forKey: .description)
 
@@ -715,6 +723,7 @@ extension Member {
             permanentAddress: permanentAddress,
             primaryDepartment: primaryDepartment,
             leadId: leadId,
+            ownerId: ownerId,
             legacyId: legacyId,
             memberDescription: memberDescription,
             family: family,

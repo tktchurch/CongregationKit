@@ -61,6 +61,9 @@ struct V2DecodeTests {
         #expect(seeker.preferredCampus == .eastCampus)
         #expect(seeker.priority == .high)
         #expect(seeker.callStatus == .notAnswered)
+        #expect(seeker.leadSource == "Walk-in")
+        #expect(seeker.leadStatusRaw == "Attempted")
+        #expect(seeker.campusLabel == "East Campus")
     }
 
     @Test func decodeFollowUpTask() throws {

@@ -5,7 +5,7 @@
 
 > **A Swift SDK for working with Salesforce church data, made for The King's Temple Church (TKT Church).**
 
-CongregationKit is a Swift package that helps you connect your app or server to Salesforce and work with church member data. It is designed for The King's Temple Church (TKT Church), but others can use it as a reference.
+CongregationKit connects apps and servers to The King's Temple Church Salesforce org. New code should use **TKT API v2** (`/services/apexrest/v2/*`) through typed handlers. Legacy v1 list routes remain as deprecated shims.
 
 ## What does it do?
 
@@ -27,12 +27,16 @@ dependencies: [
 ]
 ```
 
-Or in Xcode:
-1. File → Add Package Dependencies
-2. Enter the repository URL
-3. Select the version you want
+Then depend on the product you need:
 
-## Quick Start
+```swift
+.target(
+    name: "MyApp",
+    dependencies: [
+        .product(name: "CongregationKit", package: "CongregationKit")
+    ]
+)
+```
 
 ### 1. Set up your Salesforce credentials
 

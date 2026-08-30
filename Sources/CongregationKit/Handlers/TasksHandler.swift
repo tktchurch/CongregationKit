@@ -41,7 +41,7 @@ public struct SalesforceTasksHandler: TasksHandler {
         )
     }
 
-    public func fetchForSeeker(seekerId: SeekerID, query: SyncQuery) async throws -> SyncPage<FollowUpTask> {
+    public func fetchForSeeker(seekerId: String, query: SyncQuery) async throws -> SyncPage<FollowUpTask> {
         try await salesforceClient.v2.listTasksForSeeker(
             accessToken: accessToken,
             instanceUrl: instanceUrl,
