@@ -51,7 +51,7 @@ struct V2DecodeTests {
 
     @Test func decodeSeekerV2() throws {
         let seeker = try decodeFixture("seeker", as: Seeker.self)
-        #expect(seeker.seekerId?.rawValue == "SKR100001")
+        #expect(seeker.seekerId == "SKR100001")
         #expect(seeker.fullName == "Sample Seeker")
         #expect(seeker.sync?.etag == "W/\"def456\"")
         #expect(seeker.lead?.status == .attempted)
@@ -61,6 +61,9 @@ struct V2DecodeTests {
         #expect(seeker.preferredCampus == .eastCampus)
         #expect(seeker.priority == .high)
         #expect(seeker.callStatus == .notAnswered)
+        #expect(seeker.leadSource == "Walk-in")
+        #expect(seeker.leadStatusRaw == "Attempted")
+        #expect(seeker.campusLabel == "East Campus")
     }
 
     @Test func decodeFollowUpTask() throws {

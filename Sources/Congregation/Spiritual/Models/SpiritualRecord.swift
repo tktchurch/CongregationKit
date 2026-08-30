@@ -6,7 +6,7 @@ public struct SpiritualRecord: Decodable, Identifiable, Sendable, SyncMetadataRe
     public let sync: SyncMetadata?
     public let displayName: String?
     public let memberId: MemberID?
-    public let seekerId: SeekerID?
+    public let seekerId: String?
     public let attendeeId: String?
     public let spmId: String?
     public let question: String?
@@ -18,7 +18,7 @@ public struct SpiritualRecord: Decodable, Identifiable, Sendable, SyncMetadataRe
         sync: SyncMetadata? = nil,
         displayName: String? = nil,
         memberId: MemberID? = nil,
-        seekerId: SeekerID? = nil,
+        seekerId: String? = nil,
         attendeeId: String? = nil,
         spmId: String? = nil,
         question: String? = nil,
@@ -48,7 +48,7 @@ public struct SpiritualRecord: Decodable, Identifiable, Sendable, SyncMetadataRe
         id = try container.decodeIfPresent(String.self, forKey: .id)
         displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
         memberId = (try container.decodeIfPresent(String.self, forKey: .memberId)).flatMap(MemberID.init(rawValue:))
-        seekerId = (try container.decodeIfPresent(String.self, forKey: .seekerId)).flatMap(SeekerID.init(rawValue:))
+        seekerId = try container.decodeIfPresent(String.self, forKey: .seekerId)
         attendeeId = try container.decodeIfPresent(String.self, forKey: .attendeeId)
         spmId = try container.decodeIfPresent(String.self, forKey: .spmId)
         question = try container.decodeIfPresent(String.self, forKey: .question)
