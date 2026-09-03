@@ -176,6 +176,19 @@ public struct TktApiV2Client: Sendable {
         )
     }
 
+    public func listTaskHistory(
+        accessToken: String,
+        instanceUrl: String,
+        taskId: FollowUpTaskID
+    ) async throws -> TaskHistoryPage {
+        try await get(
+            path: v2URL(instanceUrl: instanceUrl, collection: "tasks", id: taskId.rawValue, suffix: "history"),
+            queryParams: [:],
+            accessToken: accessToken,
+            as: TaskHistoryPage.self
+        )
+    }
+
     public func listTasksForMember(
         accessToken: String,
         instanceUrl: String,

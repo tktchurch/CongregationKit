@@ -123,6 +123,7 @@ public protocol TasksHandler: Sendable {
     func fetchForStaffUser(staffUserId: StaffUserID, query: SyncQuery) async throws -> SyncPage<FollowUpTask>
     func complete(id: FollowUpTaskID, options: SyncWriteOptions?) async throws -> FollowUpTask
     func reassign(id: FollowUpTaskID, ownerId: StaffUserID, options: SyncWriteOptions?) async throws -> FollowUpTask
+    func listHistory(id: FollowUpTaskID) async throws -> TaskHistoryPage
 }
 
 /// v2 read-only staff user operations.
