@@ -77,4 +77,12 @@ public struct SalesforceTasksHandler: TasksHandler {
             options: options
         )
     }
+
+    public func listHistory(id: FollowUpTaskID) async throws -> TaskHistoryPage {
+        try await salesforceClient.v2.listTaskHistory(
+            accessToken: accessToken,
+            instanceUrl: instanceUrl,
+            taskId: id
+        )
+    }
 }
