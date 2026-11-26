@@ -27,12 +27,16 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.22.0"),
         .package(url: "https://github.com/swiftlang/swift-docc-plugin.git", from: "1.4.5"),
+        .package(url: "https://github.com/vamsii777/DIGIPIN.git", from: "3.0.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "Congregation",
+            dependencies: [
+                .product(name: "DIGIPIN", package: "DIGIPIN")
+            ],
             path: "Sources/Congregation"
         ),
         .target(
